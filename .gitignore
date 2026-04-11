@@ -1,0 +1,19 @@
+
+# Ignore the TODO list
+yelloscope.org
+
+# Ignore supporting files
+supporting
+
+# Ignore temporary files
+*~
+
+# Most recent connection port
+src/port.cfg
+port.cfg
+
+# Strip chart data
+src/stripChart.dat
+
+# Log files
+src/log
