@@ -15,6 +15,7 @@ My fork of Syscomp Design's (defunct) software for their USB Oscilloscopes.
 ## Documentation ##
 
 The CGR-201 operating manual is [here](doc/CGR-201-Manual.pdf).
+
 CGR-201 commands are documented [here](doc/CGR-201-Command-List.pdf).
 
 ## Firmware hex files ##
