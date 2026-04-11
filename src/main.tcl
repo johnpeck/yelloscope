@@ -1,12 +1,23 @@
-#File: main.tcl
-#Syscomp Unified CircuitGear Graphic User Interface
-#JG
+# Hey Emacs, use -*- Tcl -*- mode
+
+set thisfile [file normalize [info script]]
+
+# The name of this program.  This will get used to identify logfiles,
+# configuration files and other file outputs.
+set program_name [file rootname [file tail $thisfile]]
+
+# Directory where this script lives
+set program_directory [file dirname $thisfile]
+
+# Directory from which the script was invoked
+set invoked_directory [pwd]
+
+# Syscomp Unified CircuitGear Graphic User Interface
+# JG
 
 set softwareVersion "2.19"
 
 set program_name cgr201
-
-
 
 #Copyright 2014-2016 Syscomp Electronic Design
 #www.syscompdesign.com
@@ -90,8 +101,6 @@ set loglevel debug
 package require logger
 source lologger.tcl
 ${log}::info [modinfo logger]
-
-
 
 #Critical Packages
 #Img package required for screen captures
