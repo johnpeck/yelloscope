@@ -56,8 +56,8 @@ set nvmAddressSigVoltage 528
 set nvmAddressSigCurrent 544
 
 #Folder location for GUI Images
-set images Images
-set icons Icons
+set images [file join $program_directory Images]
+set icons [file join $program_directory Icons]
 
 # modinfo is needed to show loaded package versions
 proc modinfo {modname} {
@@ -99,7 +99,7 @@ set loglevel debug
 # logging.
 
 package require logger
-source lologger.tcl
+source [file join $program_directory lologger.tcl]
 ${log}::info [modinfo logger]
 
 #Critical Packages
@@ -153,23 +153,23 @@ if {$osType == "unix"} {
 set deviceType unknown
 
 #---=== Core Includes ===----
-source widget_params.tcl
-source fonts.tcl
-source console_log_window.tcl
-source usbSerial.tcl
-source scope.tcl
-source dialog.tcl
-source display.tcl
-source cursors.tcl
-source vertical.tcl
-source recorder.tcl
-source timebase.tcl
-source trigger.tcl
-source waveform.tcl
-source digio.tcl
-source firmware.tcl
-source netalyzer.tcl
-source interpolation.tcl
+source [file join $program_directory widget_params.tcl]
+source [file join $program_directory fonts.tcl]
+source [file join $program_directory console_log_window.tcl]
+source [file join $program_directory usbSerial.tcl]
+source [file join $program_directory scope.tcl]
+source [file join $program_directory dialog.tcl]
+source [file join $program_directory display.tcl]
+source [file join $program_directory cursors.tcl]
+source [file join $program_directory vertical.tcl]
+source [file join $program_directory recorder.tcl]
+source [file join $program_directory timebase.tcl]
+source [file join $program_directory trigger.tcl]
+source [file join $program_directory waveform.tcl]
+source [file join $program_directory digio.tcl]
+source [file join $program_directory firmware.tcl]
+source [file join $program_directory netalyzer.tcl]
+source [file join $program_directory interpolation.tcl]
 
 # Bring public commands into the global namespace
 namespace import ::usbSerial::*
@@ -982,17 +982,17 @@ wm geometry .console_log_window "+0+0"
 display::readColorSettings
 
 #Add-ons
-source wavemaker.tcl
-source FFT.tcl
-source automeasure.tcl
-source math.tcl
-source export.tcl
-source updateCheck.tcl
-source persist.tcl
-source calibration.tcl
-source tooltip.tcl
-source average.tcl
-source signature.tcl
+source [file join $program_directory wavemaker.tcl]
+source [file join $program_directory FFT.tcl]
+source [file join $program_directory automeasure.tcl]
+source [file join $program_directory math.tcl]
+source [file join $program_directory export.tcl]
+source [file join $program_directory updateCheck.tcl]
+source [file join $program_directory persist.tcl]
+source [file join $program_directory calibration.tcl]
+source [file join $program_directory tooltip.tcl]
+source [file join $program_directory average.tcl]
+source [file join $program_directory signature.tcl]
 
 #Open a connection to the device
 usbSerial::getStoredPort

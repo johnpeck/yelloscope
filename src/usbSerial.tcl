@@ -526,14 +526,14 @@ proc usbSerial::openSerialPort {} {
 	    puts "incomingData: $incomingData"
 	    if { [lsearch $incomingData "Mini"] !=-1 } {
 		set ::deviceType mini
-		source CGRMINI.tcl
+		source [file join $program_directory CGRMINI.tcl]
 		#Global variable to store firmware information
 		set usbSerial::firmwareIdent $incomingData
 		#Poke the serialCheck variable
 		set serialCheck found
 	    } elseif {[lsearch $incomingData "MKII"] !=-1 } {
 		set ::deviceType mk2
-		source CGRMK2.tcl
+		source [file join $program_directory CGRMK2.tcl]
 		update
 		update idletasks
 		#Global variable to store firmware information
@@ -542,7 +542,7 @@ proc usbSerial::openSerialPort {} {
 		set serialCheck found
 	    } elseif {[lsearch $incomingData "Signature"] !=-1} {
 		set ::deviceType sig
-		source SIG101.tcl
+		source [file join $program_directory SIG101.tcl]
 		#Global variable to store firmware information
 		set usbSerial::firmwareIdent $incomingData
 		#Poke the serialCheck variable
