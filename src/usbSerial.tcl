@@ -532,6 +532,7 @@ proc usbSerial::openSerialPort {} {
 		#Poke the serialCheck variable
 		set serialCheck found
 	    } elseif {[lsearch $incomingData "MKII"] !=-1 } {
+		${log}::info "Found a CGR-201"
 		set ::deviceType mk2
 		source [file join $program_directory CGRMK2.tcl]
 		update

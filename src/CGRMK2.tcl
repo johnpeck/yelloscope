@@ -26,7 +26,7 @@ namespace eval scope {
 }
 
 namespace eval vertical {
-    
+
     variable R1 909E3
     variable R8 90.9E3
     variable R5 1.87E3
@@ -35,22 +35,22 @@ namespace eval vertical {
     variable R9 510
     variable RA 20E3
     variable RB 20E3
-    
+
     set k8High [expr {($R8/($R1+$R8)*($R5/$R2))}]
     set k8Low [expr {$k8High*(1+$R3/$R9)}]
     set k10 [expr {(1+$R5/$R2)*($RB/$RA)}]
-    
+
     set shiftStepHighDefault [expr {4095.0*$k8High/($k10*1.24)}]
     set shiftStepLowDefault [expr {4095.0*$k8Low/($k10*1.24)}]
-    
+
     variable shiftStepAHigh $shiftStepHighDefault
     variable shiftStepALow $shiftStepLowDefault
     variable shiftStepBHigh $shiftStepHighDefault
     variable shiftStepBLow $shiftStepLowDefault
-    
+
     set stepSizeHighDefault [expr {1/1023.0*1.24/$k8High}]
     set stepSizeLowDefault [expr {1/1023.0*1.24/$k8Low}]
-    
+
     variable stepSizeAHigh $stepSizeHighDefault
     variable stepSizeALow $stepSizeLowDefault
     variable stepSizeBHigh $stepSizeHighDefault
@@ -63,7 +63,7 @@ namespace eval trigger {
 }
 
 namespace eval timebase {
-    set baseSamplingRate 40.0E6	
+    set baseSamplingRate 40.0E6
     set timebaseSetting 0.001
     set validTimebases {	\
 				    {50E-9 0}	\
@@ -147,17 +147,18 @@ proc timebase::getSamplingRate {} {
 
 }
 
-#Process Response
-#-------------------
-#This procedure processes the message received from the instrument.  It examines
-#the "responseType" and calls the appropriate routine to deal with the message.
 proc ::usbSerial::processResponse {} {
+    # Process the message received from the hardware.  The message
+    # contains a "responseType."  Call the appropriate procedure to
+    # deal with the message according to the responseType.
+    #
+    # Arguments: none
     global log
-    
+
     #Read in all available data from the serial port
     set incomingData [read $::portHandle]
     #puts "RX: $incomingData"
-    
+
     #Convert the data bytes into signed integers
     if { [llength {$incomingData}] > 0 } {
 	binary scan $incomingData c* signed
@@ -166,7 +167,7 @@ proc ::usbSerial::processResponse {} {
 	    lappend ::usbSerial::receivedData [lindex $::usbSerial::cvt [expr {$byte & 255}]]
 	}
     }
-    
+
     #See if we have data in the buffer to process
     if {[llength $usbSerial::receivedData] > 0} {
 	set usbSerial::responseType [lindex $::usbSerial::receivedData 0]
@@ -174,10 +175,10 @@ proc ::usbSerial::processResponse {} {
     } else {
 	return
     }
-    
+
     #Get the total length of the message (number of bytes)
     set responseLength [llength $usbSerial::receivedData]
-    
+
     #Process the message based on it's message type
     switch $usbSerial::responseType {
 	"D" {
@@ -233,7 +234,7 @@ proc ::usbSerial::processResponse {} {
 		}
 	    } else {
 		return
-	    }	
+	    }
 	} "S" {
 	    if {$responseLength >=5} {
 		set temp [lrange $usbSerial::receivedData 1 4]
@@ -338,7 +339,7 @@ proc ::usbSerial::processResponse {} {
 		puts -nonewline $usbSerial::responseType
 		puts [lindex $firmware::receivedData 1]
 		if {$responseLength > 2} {
-		    set usbSerial::receivedData [lrange $usbSerial::receivedData 2 end]	
+		    set usbSerial::receivedData [lrange $usbSerial::receivedData 2 end]
 		} else {
 		    set usbSerial::receivedData {}
 		}
@@ -400,14 +401,14 @@ proc ::usbSerial::processResponse {} {
 	    set usbSerial::receivedData {}
 	    scope::acquireWaveform
 	}
-    }	
-    
+    }
+
     incr ::statusState
     if {$::statusState > 14} {
 	set ::statusState 0
     }
     .connection configure -image $::statusImage($::statusState)
-    
+
     #If there is more data in the receive buffer, repeat this procedure
     if { [llength $usbSerial::receivedData] > 0 } {
 	usbSerial::processResponse
@@ -423,18 +424,18 @@ proc scope::saveOffsets {} {
     variable offsetAHigh
     variable offsetBLow
     variable offsetBHigh
-    
+
     #Replace the button with a progress bar while we save the values
     set scope::saveOffsetProgress 0
-    
+
     set pos [grid info .offset.saveCal]
     grid remove .offset.saveCal
     grid .offset.saveProgress -row 5 -column 0 -pady 5 -columnspan 2 -sticky we
     update
-    
+
     set sampleIndex 0
     set address $::nvmAddressOffsets
-    
+
     #Channel A Low Offset
     set temp [expr {2047-$offsetALow}]
     set byte1 [expr {round(floor($temp/pow(2,8)))}]
@@ -448,7 +449,7 @@ proc scope::saveOffsets {} {
     after 100
     incr scope::saveOffsetProgress
     update
-    
+
     #Channel A High Offset
     set temp [expr {2047-$offsetAHigh}]
     set byte1 [expr {round(floor($temp/pow(2,8)))}]
@@ -463,7 +464,7 @@ proc scope::saveOffsets {} {
     after 100
     incr scope::saveOffsetProgress
     update
-    
+
     #Channel B Low Offset
     set temp [expr {2047-$offsetBLow}]
     set byte1 [expr {round(floor($temp/pow(2,8)))}]
@@ -478,7 +479,7 @@ proc scope::saveOffsets {} {
     after 100
     incr scope::saveOffsetProgress
     update
-    
+
     #Channel B High Offset
     set temp [expr {2047-$offsetBHigh}]
     set byte1 [expr {round(floor($temp/pow(2,8)))}]
@@ -493,17 +494,17 @@ proc scope::saveOffsets {} {
     after 100
     incr scope::saveOffsetProgress
     update
-    
+
     grid remove .offset.saveProgress
     grid .offset.saveCal -row 5 -column 0 -pady 5 -columnspan 2 -sticky we
-    
+
     tk_messageBox	\
 	-default ok	\
 	-message "Offsets saved to device."	\
 	-parent .offset	\
 	-title "Offsets Saved"	\
 	-type ok
-    
+
 }
 
 # scope::restoreOffsetCal
@@ -512,19 +513,19 @@ proc scope::saveOffsets {} {
 proc scope::restoreOffsetCal {} {
 
     set address $::nvmAddressOffsets
-    
+
     #Read the low range offset high byte for channel A
     sendCommand "e $address"
     vwait usbSerial::eepromData
     set byte1 $usbSerial::eepromData
     puts "Data $usbSerial::eepromData"
-    
+
     #Check to see if the value is "blank" (unprogrammed eeprom)
     if {$byte1 == 255} {
 	puts "No scope offsets stored in hardware"
 	return
     }
-    
+
     #Read the low range offset low byte for channel A
     incr address
     sendCommand "e $address"
@@ -532,9 +533,9 @@ proc scope::restoreOffsetCal {} {
     set byte0 $usbSerial::eepromData
     set scope::offsetALow [expr {2047-(256*$byte1+$byte0)}]
     puts "Data $usbSerial::eepromData"
-    
+
     #Read the high range offset for channel A
-    incr address 
+    incr address
     sendCommand "e $address"
     vwait usbSerial::eepromData
     set byte1 $usbSerial::eepromData
@@ -545,8 +546,7 @@ proc scope::restoreOffsetCal {} {
     set byte0 $usbSerial::eepromData
     set scope::offsetAHigh [expr {2047-(256*$byte1+$byte0)}]
     puts "Data $usbSerial::eepromData"
-    
-    
+
     #Read the low range offset for channel B
     incr address
     sendCommand "e $address"
@@ -559,7 +559,7 @@ proc scope::restoreOffsetCal {} {
     set byte0 $usbSerial::eepromData
     set scope::offsetBLow [expr {2047-(256*$byte1+$byte0)}]
     puts "Data $usbSerial::eepromData"
-    
+
     #Read the high range offset for channel B
     incr address
     sendCommand "e $address"
@@ -572,7 +572,7 @@ proc scope::restoreOffsetCal {} {
     set byte0 $usbSerial::eepromData
     set scope::offsetBHigh [expr {2047-(256*$byte1+$byte0)}]
     puts "Data $usbSerial::eepromData"
-    
+
     puts "Scope offsets restored."
 }
 
@@ -584,17 +584,17 @@ proc scope::showOffsetCal {} {
 
     #Check to see if the window is already open
     if {![winfo exists .offset]} {
-	
+
 	#Create a new window
 	toplevel .offset
 	wm title .offset "Scope Offset Calibration"
 	wm iconname .offset "Offset"
 	wm resizable .offset 0 0
-	
+
 	label .offset.aHighLabel	\
 	    -text "Channel A\n1V-5V Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .offset.aHighScale	\
 	    -from 300	\
 	    -to -300	\
@@ -603,11 +603,11 @@ proc scope::showOffsetCal {} {
 	    -showvalue 1	\
 	    -variable scope::offsetAHigh	\
 	    -command "scope::offsetAdjustment A"
-	
+
 	label .offset.bHighLabel	\
 	    -text "Channel B\n1V-5V Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .offset.bHighScale	\
 	    -from 300	\
 	    -to -300	\
@@ -616,11 +616,11 @@ proc scope::showOffsetCal {} {
 	    -showvalue 1	\
 	    -variable scope::offsetBHigh	\
 	    -command "scope::offsetAdjustment B"
-	
+
 	label .offset.aLowLabel	\
 	    -text "Channel A\n50mV-500mV Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .offset.aLowScale	\
 	    -from 300	\
 	    -to -300	\
@@ -629,11 +629,11 @@ proc scope::showOffsetCal {} {
 	    -showvalue 1	\
 	    -variable scope::offsetALow	\
 	    -command "scope::offsetAdjustment A"
-	
+
 	label .offset.bLowLabel	\
 	    -text "Channel B\n50mV-500mV Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .offset.bLowScale	\
 	    -from 300	\
 	    -to -300	\
@@ -642,11 +642,11 @@ proc scope::showOffsetCal {} {
 	    -showvalue 1	\
 	    -variable scope::offsetBLow	\
 	    -command "scope::offsetAdjustment B"
-	
+
 	button .offset.saveCal	\
 	    -text "Save Calibration Values to Device"	\
 	    -command scope::saveOffsets
-	
+
 	#Progress bar for saving values to the hardware
 	set scope::saveOffsetProgress 0
 	ttk::progressbar .offset.saveProgress	\
@@ -655,12 +655,12 @@ proc scope::showOffsetCal {} {
 	    -mode determinate	\
 	    -maximum 48	\
 	    -variable scope::saveOffsetProgress
-	
+
 	#Button for autocalibration
 	button .offset.autoCal	\
 	    -text "Auto Calibrate..."	\
 	    -command scope::autoOffsetCalibration
-	
+
 	grid .offset.aHighLabel -row 0 -column 0
 	grid .offset.aHighScale -row 1 -column 0
 	grid .offset.bHighLabel -row 0 -column 3
@@ -671,7 +671,7 @@ proc scope::showOffsetCal {} {
 	grid .offset.bLowScale -row 1 -column 4
 	grid .offset.autoCal -row 4 -column 0 -columnspan 5 -pady 10 -sticky we
 	grid .offset.saveCal -row 5 -column 0 -columnspan 5 -pady 5 -sticky we
-	
+
     } else {
 	#Get rid of the old offset cal window and create a new one
 	destroy .offset
@@ -681,7 +681,7 @@ proc scope::showOffsetCal {} {
 }
 
 proc scope::offsetAdjustment {channel newValue} {
-    
+
     set offset [expr {2047+$newValue}]
     sendCommand "o $channel $offset"
 
@@ -691,17 +691,17 @@ proc scope::showShiftCal {} {
 
     #Check to see if the window is already open
     if {![winfo exists .shift]} {
-	
+
 	#Create a new window
 	toplevel .shift
 	wm title .shift "Scope Shift Calibration"
 	wm iconname .shift "Shift"
 	wm resizable .shift 0 0
-	
+
 	label .shift.aHighLabel	\
 	    -text "Channel A\n1V-5V Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .shift.aHighScale	\
 	    -from 90	\
 	    -to 30	\
@@ -710,11 +710,11 @@ proc scope::showShiftCal {} {
 	    -showvalue 1	\
 	    -variable vertical::shiftStepAHigh	\
 	    -command "scope::shiftCalHandler A"
-	
+
 	label .shift.bHighLabel	\
 	    -text "Channel B\n1V-5V Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .shift.bHighScale	\
 	    -from 90	\
 	    -to 30	\
@@ -723,11 +723,11 @@ proc scope::showShiftCal {} {
 	    -showvalue 1	\
 	    -variable vertical::shiftStepBHigh	\
 	    -command "scope::shiftCalHandler B"
-	
+
 	label .shift.aLowLabel	\
 	    -text "Channel A\n50mV-500mV Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .shift.aLowScale	\
 	    -from 900	\
 	    -to 300	\
@@ -736,11 +736,11 @@ proc scope::showShiftCal {} {
 	    -showvalue 1	\
 	    -variable vertical::shiftStepALow	\
 	    -command "scope::shiftCalHandler A"
-	
+
 	label .shift.bLowLabel	\
 	    -text "Channel B\n50mV-500mV Range"		\
 	    -font {-weight bold -size -12}
-	
+
 	scale .shift.bLowScale	\
 	    -from 900	\
 	    -to 300	\
@@ -749,15 +749,15 @@ proc scope::showShiftCal {} {
 	    -showvalue 1	\
 	    -variable vertical::shiftStepBLow	\
 	    -command "scope::shiftCalHandler B"
-	
+
 	button .shift.autoCal	\
 	    -text "Auto Calibrate Shift Voltages"	\
 	    -command vertical::autoShiftCalibration
-	
+
 	button .shift.saveCal	\
 	    -text "Save Calibration Values to Device"	\
 	    -command scope::saveShiftCal
-	
+
 	#Progress bar for saving values to the hardware
 	set scope::saveOffsetProgress 0
 	ttk::progressbar .shift.saveProgress	\
@@ -766,7 +766,7 @@ proc scope::showShiftCal {} {
 	    -mode determinate	\
 	    -maximum 48	\
 	    -variable scope::saveOffsetProgress
-	
+
 	grid .shift.aHighLabel -row 0 -column 0
 	grid .shift.aHighScale -row 1 -column 0
 	grid .shift.bHighLabel -row 0 -column 3
@@ -777,7 +777,7 @@ proc scope::showShiftCal {} {
 	grid .shift.bLowScale -row 1 -column 4
 	grid .shift.saveCal -row 3 -column 0 -columnspan 5 -pady 5 -sticky we
 	grid .shift.saveCal -row 4 -column 0 -columnspan 5 -pady 5 -sticky we
-	
+
     } else {
 	#Get rid of the old offset cal window and create a new one
 	destroy .shift
@@ -792,7 +792,7 @@ proc scope::shiftCalHandler {channel scaleValue} {
     } else {
 	vertical::updateShift B $cursor::chBGndVoltage
     }
-    
+
 }
 
 proc scope::saveShiftCal {} {
@@ -800,41 +800,41 @@ proc scope::saveShiftCal {} {
     variable offsetAHigh
     variable offsetBLow
     variable offsetBHigh
-    
+
     #Save Channel A High Range Step Size
     set address [expr {$::nvmAddressShifts+16}]
     set vertical::shiftStepAHigh [format "%.10f" $vertical::shiftStepAHigh]
     cal::saveParameter $vertical::shiftStepAHigh $address
-    
+
     #Save Channel A Low Range Step Size
     set address [expr {$address+16}]
     set vertical::shiftStepALow [format "%.10f" $vertical::shiftStepALow]
     cal::saveParameter $vertical::shiftStepALow $address
-    
+
     #Save Channel B High Range Step Size
     set address [expr {$address+16}]
     set vertical::shiftStepBHigh [format "%.10f" $vertical::shiftStepBHigh]
     cal::saveParameter $vertical::shiftStepBHigh $address
-    
+
     #Save Channel B Low Range Step Size
     set address [expr {$address+16}]
     set vertical::shiftStepBLow [format "%.10f" $vertical::shiftStepBLow]
     cal::saveParameter $vertical::shiftStepBLow $address
-    
+
     #Write custom calibration identifier
     cal::saveParameter 1 $::nvmAddressShifts
-    
+
     tk_messageBox	\
 	-message "Configuration values saved."	\
 	-type ok
-    
+
 }
 
 proc scope::restoreShiftCal {} {
     set address $::nvmAddressShifts
 
     set shiftCalibrated [cal::readParameter $address]
-    
+
     if {$shiftCalibrated=="1"} {
 	puts "Custom shift calibration detected, loading from device"
     } else {
@@ -845,7 +845,7 @@ proc scope::restoreShiftCal {} {
 	set vertical::shiftStepBLow $vertical::shiftStepLowDefault
 	return
     }
-    
+
     #Channel A High Range Step Size
     set address [expr {$address+16}]
     set temp [cal::readParameter $address]
@@ -859,7 +859,7 @@ proc scope::restoreShiftCal {} {
 	set vertical::shiftStepBLow $vertical::shiftStepLowDefault
 	return
     }
-    
+
     #Channel A Low Range Step Size
     set address [expr {$address+16}]
     set temp [cal::readParameter $address]
@@ -873,7 +873,7 @@ proc scope::restoreShiftCal {} {
 	set vertical::shiftStepBLow $vertical::shiftStepLowDefault
 	return
     }
-    
+
     #Channel B High Range Step Size
     set address [expr {$address+16}]
     set temp [cal::readParameter $address]
@@ -887,7 +887,7 @@ proc scope::restoreShiftCal {} {
 	set vertical::shiftStepBLow $vertical::shiftStepLowDefault
 	return
     }
-    
+
     #Channel B Low Range Step Size
     set address [expr {$address+16}]
     set temp [cal::readParameter $address]
@@ -914,9 +914,9 @@ proc scope::autoOffsetCalibration {} {
 		    -parent .offset	\
 		    -title "Auto-Calibrate Warning"	\
 		    -type yesno]
-    
+
     if {$answer=="no"} {return}
-    
+
     tk_messageBox	\
 	-default ok	\
 	-icon warning	\
@@ -930,12 +930,12 @@ proc scope::autoOffsetCalibration {} {
     wm title .autoOffset "Automatic Offset Calibration"
     wm iconname .autoOffset "Auto Offset"
     wm resizable .autoOffset 0 0
-    
+
     #Create a label to display the auto-calibration status
     set scope::autoOffsetStatus "Initializing..."
     label .autoOffset.status	\
 	-textvariable scope::autoOffsetStatus
-    
+
     #Create a progress bar
     set scope::autoOffsetProgress 0
     ttk::progressbar .autoOffset.progress	\
@@ -944,14 +944,14 @@ proc scope::autoOffsetCalibration {} {
 	-mode determinate	\
 	-maximum 4	\
 	-variable scope::autoOffsetProgress
-    
+
     grid .autoOffset.status -row 0 -column 0
     grid .autoOffset.progress -row 1 -column 0
-    
+
     raise .autoOffset
     focus .autoOffset
     grab .autoOffset
-    
+
     #Use single-shot trigger during auto-calibration
     #set trigger::triggerMode "Single-Shot"
     #trigger::selectTriggerMode
@@ -964,7 +964,6 @@ proc scope::autoOffsetCalibration {} {
     #Flag to indicate that we are calibrating the offsets
     set scope::scopeOffsetCalibrationInProgress 1
 
-
     #Select High Range for both channels
     set scope::autoOffsetStatus "Range: 1.0 - 5.0V"
     set vertical::verticalIndexA 6
@@ -973,7 +972,7 @@ proc scope::autoOffsetCalibration {} {
     #vertical::updateIndicator .scope.verticalB B
     vertical::adjustVertical .scope.verticalA A update
     vertical::adjustVertical .scope.verticalB B update
-    
+
     #Zero the offsets
     puts "===Zeroing A High"
     scope::zeroOffset A
@@ -983,7 +982,7 @@ proc scope::autoOffsetCalibration {} {
     scope::zeroOffset B
     incr scope::autoOffsetProgress
     update
-    
+
     #Select Low Range for both channels
     set scope::autoOffsetStatus "Range: 20mV - 500mV"
     set vertical::verticalIndexA 2
@@ -993,11 +992,11 @@ proc scope::autoOffsetCalibration {} {
     #vertical::updateVertical
     vertical::adjustVertical .scope.verticalA A update
     vertical::adjustVertical .scope.verticalB B update
-    
+
     vwait scope::scopeOffsetData
     vwait scope::scopeOffsetData
     vwait scope::scopeOffsetData
-    
+
     #Zero the offsets
     puts "===Zeroing A Low"
     scope::zeroOffset A
@@ -1007,22 +1006,22 @@ proc scope::autoOffsetCalibration {} {
     scope::zeroOffset B
     incr scope::autoOffsetProgress
     update
-    
+
     set trigger::triggerMode "Auto"
     trigger::selectTriggerMode
-    
+
     set scope::scopeOffsetCalibrationInProgress 0
-    
+
     set answer [tk_messageBox	\
 		    -default yes	\
 		    -message "Offset calibration complete.  Would you like to save the values?"	\
 		    -parent .autoOffset	\
 		    -title "Calibration Complete"	\
 		    -type yesno]
-    
-    destroy .autoOffset	
+
+    destroy .autoOffset
     update
-    
+
     if {$answer == "yes"} {
 	scope::saveOffsets
     }
@@ -1032,13 +1031,13 @@ proc scope::zeroOffset {channel} {
 
     set minValue -300
     set maxValue 300
-    
+
     #Hunt down the correct offset
     for {set i 0} {$i <10} {incr i} {
-	
+
 	puts "Iteration $i"
 	puts "Max $maxValue Min $minValue"
-	
+
 	set testOffset [expr {($maxValue-$minValue)/2+$minValue}]
 	puts "Testing offset $testOffset"
 	if {$channel == "A"} {
@@ -1054,14 +1053,14 @@ proc scope::zeroOffset {channel} {
 		.offset.bLowScale set $testOffset
 	    }
 	}
-	
+
 	set measuredOffset [scope::calculateAverage $channel]
 	puts "Measured $measuredOffset"
-	
+
 	if {$measuredOffset == 511} {
 	    break
 	}
-	
+
 	if {$measuredOffset > 511} {
 	    set minValue $testOffset
 	} else {
@@ -1090,13 +1089,13 @@ proc scope::calculateAverage {channel} {
     } else {
 	set data [lindex $scope::scopeData 1]
     }
-    
+
     set average 0
     for {set i 0} {$i < 4096} {incr i} {
 	set average [expr {$average+[lindex $data $i]}]
     }
     set average [expr {round($average/4096.0)}]
-    
+
     return $average
 
 }
@@ -1110,9 +1109,9 @@ proc vertical::autoVerticalCalibration {range} {
 		    -parent .calibrate	\
 		    -title "Auto-Calibrate Warning"	\
 		    -type yesno]
-    
+
     if {$answer=="no"} {return}
-    
+
     if {$range=="high"} {
 	set vRef "2.5V"
     } else {
@@ -1131,11 +1130,11 @@ proc vertical::autoVerticalCalibration {range} {
     wm title .autoCalibration "Automatic Calibration"
     wm iconname .autoCalibration "Auto Cal"
     wm resizable .autoCalibration 0 0
-    
+
     #Create a label to display the auto-calibration status
     label .autoCalibration.status	\
 	-text "Calibrating..."
-    
+
     #Create a progress bar
     set scope::autoCalibrationProgress 0
     ttk::progressbar .autoCalibration.progress	\
@@ -1144,16 +1143,16 @@ proc vertical::autoVerticalCalibration {range} {
 	-mode determinate	\
 	-maximum 50	\
 	-variable scope::autoCalibrationProgress
-    
+
     grid .autoCalibration.status -row 0 -column 0
     grid .autoCalibration.progress -row 1 -column 0
-    
+
     update
     raise .autoCalibration
     focus .autoCalibration
     grab .autoCalibration
     update
-    
+
     #Select Range
     if {$range == "high"} {
 	#Select High Range for both channels
@@ -1180,13 +1179,13 @@ proc vertical::autoVerticalCalibration {range} {
 	vertical::calibrate B 0.250
 	set scope::autoCalibrationProgress 50
     }
-    
+
     destroy .autoCalibration
     update
 }
 
 proc vertical::calibrate {channel voltage} {
-    
+
     if {$voltage >= 1.0} {
 	set minValue 0.01
 	set maxValue 0.07
@@ -1194,15 +1193,15 @@ proc vertical::calibrate {channel voltage} {
 	set minValue 0.001
 	set maxValue 0.007
     }
-    
+
     automeasure::showMeasurements
-    
+
     #Hunt down the correct step voltage
     for {set i 0} {$i <25} {incr i} {
-	
+
 	puts "Iteration $i"
 	puts "Max $maxValue Min $minValue"
-	
+
 	set testValue [expr {($maxValue-$minValue)/2+$minValue}]
 	puts "Testing value $testValue"
 	if {$channel == "A"} {
@@ -1218,7 +1217,7 @@ proc vertical::calibrate {channel voltage} {
 		set measuredAverage [string range $automeasure::autoAverageA 0 end-3]
 		set measuredAverage [expr {$measuredAverage/1000.0}]
 	    }
-	    
+
 	} else {
 	    if {$voltage >= 1.0} {
 		.calibrate.b.high set $testValue
@@ -1232,23 +1231,22 @@ proc vertical::calibrate {channel voltage} {
 		set measuredAverage [string range $automeasure::autoAverageB 0 end-3]
 		set measuredAverage [expr {$measuredAverage/1000.0}]
 	    }
-	    
+
 	}
-	
+
 	puts "Measured average: $measuredAverage"
-	
+
 	if {$measuredAverage == $voltage} {
 	    break;
 	}
-	
-	
+
 	if {$measuredAverage > $voltage} {
 	    set maxValue $testValue
 	} else {
 	    set minValue $testValue
 	}
 	incr scope::autoCalibrationProgress
-	
+
 	update
     }
 
@@ -1263,7 +1261,7 @@ proc vertical::autoShiftCalibration {} {
 		    -parent .shift	\
 		    -title "Auto-Calibrate Warning"	\
 		    -type yesno]
-    
+
     tk_messageBox	\
 	-default ok	\
 	-icon warning	\
@@ -1277,11 +1275,11 @@ proc vertical::autoShiftCalibration {} {
     wm title .autoShift "Automatic Calibration"
     wm iconname .autoShift "Auto Cal"
     wm resizable .autoShift 0 0
-    
+
     #Create a label to display the auto-calibration status
     label .autoShift.status	\
 	-text "Calibrating..."
-    
+
     #Create a progress bar
     set scope::autoCalibrationProgress 0
     ttk::progressbar .autoShift.progress	\
@@ -1290,16 +1288,16 @@ proc vertical::autoShiftCalibration {} {
 	-mode determinate	\
 	-maximum 100	\
 	-variable scope::autoCalibrationProgress
-    
+
     grid .autoShift.status -row 0 -column 0
     grid .autoShift.progress -row 1 -column 0
-    
+
     update
     raise .autoShift
     focus .autoShift
     grab .autoShift
     update
-    
+
     #A High Range
     .autoShift.status configure -text "Channel A Range: 1.0 - 5.0V"
     update
@@ -1307,7 +1305,7 @@ proc vertical::autoShiftCalibration {} {
     vertical::adjustVertical .scope.verticalA A update
     vertical::calibrateShift A high
     set scope::autoCalibrationProgress 25
-    
+
     #B High Range
     .autoShift.status configure -text "Channel B Range: 1.0 - 5.0V"
     update
@@ -1315,7 +1313,7 @@ proc vertical::autoShiftCalibration {} {
     vertical::adjustVertical .scope.verticalB B update
     vertical::calibrateShift B high
     set scope::autoCalibrationProgress 50
-    
+
     #A Low Range
     .autoShift.status configure -text "Channel A Range: 20mV - 500mV"
     update
@@ -1323,7 +1321,7 @@ proc vertical::autoShiftCalibration {} {
     vertical::adjustVertical .scope.verticalA A update
     vertical::calibrateShift A low
     set scope::autoCalibrationProgress 75
-    
+
     #B High Range
     .autoShift.status configure -text "Channel B Range: 20mV - 500mV"
     update
@@ -1331,14 +1329,13 @@ proc vertical::autoShiftCalibration {} {
     vertical::adjustVertical .scope.verticalB B update
     vertical::calibrateShift B low
     set scope::autoCalibrationProgress 100
-    
+
     destroy .autoShift
     update
 }
 
-
 proc vertical::calibrateShift {channel range} {
-    
+
     if {$range == "high"} {
 	set minValue 30
 	set maxValue 90
@@ -1348,21 +1345,21 @@ proc vertical::calibrateShift {channel range} {
 	set maxValue 900
 	set voltage 2
     }
-    
+
     automeasure::showMeasurements
-    
+
     cursor::moveChAGnd 52
     cursor::moveChBGnd 52
-    
+
     #Hunt down the correct step voltage
     for {set i 0} {$i <25} {incr i} {
-	
+
 	puts "Iteration $i"
 	puts "Max $maxValue Min $minValue"
-	
+
 	set testValue [expr {($maxValue-$minValue)/2.0+$minValue}]
 	puts "Testing value $testValue"
-	
+
 	if {$channel == "A"} {
 	    if {$range == "high"} {
 		.shift.aHighScale set $testValue
@@ -1375,7 +1372,7 @@ proc vertical::calibrateShift {channel range} {
 		vwait automeasure::autoAverageA
 		set measuredAverage [string range $automeasure::autoAverageA 0 end-2]
 	    }
-	    
+
 	} else {
 	    if {$range == "high"} {
 		.shift.bHighScale set $testValue
@@ -1388,23 +1385,22 @@ proc vertical::calibrateShift {channel range} {
 		vwait automeasure::autoAverageB
 		set measuredAverage [string range $automeasure::autoAverageB 0 end-2]
 	    }
-	    
+
 	}
-	
+
 	puts "Measured average: $measuredAverage"
-	
+
 	if {$measuredAverage == $voltage} {
 	    break;
 	}
-	
-	
+
 	if {$measuredAverage > $voltage} {
 	    set maxValue $testValue
 	} else {
 	    set minValue $testValue
 	}
 	incr scope::autoCalibrationProgress
-	
+
 	update
     }
 
@@ -1413,20 +1409,20 @@ proc vertical::calibrateShift {channel range} {
 namespace eval mk2 {
 
     set fpgaProgress 0
-    
+
 }
 
 #proc mk2::device2Write {} {
 #
 #	set pageAddress 0
 #	set byteAddress 0
-#	
+#
 #	firmware::addLog "Writing to Device 2..."
-#	
+#
 #	firmware::addChar "0%"
-#	
+#
 #	set endPage [expr {ceil($firmware::device2FlashEnd/256.0)}]
-#	
+#
 #	for {set pageAddress 0} {$pageAddress < $endPage} {incr pageAddress} {
 #		#Fill the buffer
 #		set firmware::status writingBuffer
@@ -1444,28 +1440,26 @@ namespace eval mk2 {
 #			firmware::addLog "Device 2 flash write failed at address $pageAddress"
 #			return 0
 #		}
-#		
+#
 #		.firmware.log delete "insert linestart" "insert lineend"
 #		firmware::addChar "[expr {round($pageAddress*1.0/$endPage*100)}]%"
-#	
+#
 #	}
-#	
+#
 #	.firmware.log delete "insert linestart" "insert lineend"
 #	firmware::addLog "100%"
 #	firmware::addLog "Writing to Device 2 complete."
-#	
+#
 #	return 1
-#	
+#
 #}
-
-
 
 #Show Firmware GUI
 #----------------------
 #This procedure builds the firmware upgrade dialog box or
 #restores it if it has already been created.
 proc mk2::showFpgaUpgrade {} {
-    
+
     if {$firmware::fpgaIsCurrent} {
 	tk_messageBox	\
 	    -message "Your FPGA image is current.  No firmware update required.\n"	\
@@ -1474,32 +1468,32 @@ proc mk2::showFpgaUpgrade {} {
 	    -type ok
 	return
     }
-    
+
     if {![winfo exists .fpga]} {
-	
+
 	toplevel .fpga
 	wm title .fpga "FPGA Upgrade"
-	
+
 	frame .fpga.manual	\
 	    -relief groove	\
 	    -borderwidth 2
-	
+
 	label .fpga.manual.warning	\
 	    -text 	"FPGA IMAGE UPGRADE:\n\nThis process will ERASE and upgrade the firmware on your device.\n\nDo not disconnect your device or interrupt the software during this process.\n\nDistrupting this process can damage your device."	\
 	    -anchor center
-	
+
 	button .fpga.manual.start	\
 	    -text "Start upgrade"	\
 	    -command {.fpga.manual.start configure -state disabled; .fpga.manual.cancel configure -state disabled; mk2::fpgaUpgrade}
-	
+
 	button .fpga.manual.cancel	\
 	    -text "Exit"	\
 	    -command {destroy .fpga}
-	
+
 	grid .fpga.manual.warning -row 0 -column 0 -pady 5 -columnspan 2
 	grid .fpga.manual.start -row 1 -column 0 -pady 5 -padx 5
 	grid .fpga.manual.cancel -row 1 -column 1 -pady 5 -padx 5
-	
+
 	#Progress bar for saving values to the hardware
 	set mk2::fpgaProgress 0
 
@@ -1509,12 +1503,12 @@ proc mk2::showFpgaUpgrade {} {
 	    -mode determinate	\
 	    -maximum 100	\
 	    -variable mk2::fpgaProgress
-	
+
 	text  .fpga.log	\
 	    -width 55		\
 	    -height 15		\
 	    -undo 1
-	
+
 	grid .fpga.manual -row 0 -stick we
 	grid .fpga.progressBar -row 1 -pady 5
 	grid .fpga.log -row 2
@@ -1525,14 +1519,13 @@ proc mk2::showFpgaUpgrade {} {
 	raise .fpga
 	focus .fpga
 	grab .fpga
-	
+
 	wm protocol .fpga WM_DELETE_WINDOW {
 	    destroy .fpga
 	    update
 	    destroy .
 	}
-	
-	
+
     } else {
 	wm deiconify .fpga
 	raise .fpga
@@ -1553,10 +1546,10 @@ proc mk2::addChar {char} {
 }
 
 proc mk2::fpgaUpgrade {} {
-    
+
     #Kill any on-going scope captures
     sendCommand k
-    
+
     set answer [tk_messageBox	\
 		    -default no	\
 		    -message "WARNING: The firmware update process can take several minutes.\nDo not unplug the device or interrupt the process.\nWould you like to continue?"	\
@@ -1564,17 +1557,17 @@ proc mk2::fpgaUpgrade {} {
 		    -title "Firmware Warning"	\
 		    -type yesno
 	       ]
-    
+
     if {$answer != "yes"} {
 	wm deiconify .wave
 	wm deiconify .digio
 	wm deiconify .
 	raise .
 	focus .
-	destroy .fpga	
+	destroy .fpga
 	return
     }
-    
+
     if {$firmware::fpgaRev=="0x01"} {
 	mk2::addLog ""
 	mk2::addLog "Production Rev 1 FPGA Image Detected!"
@@ -1590,14 +1583,14 @@ proc mk2::fpgaUpgrade {} {
 	mk2::addLog "NO LONGER FUNCTION."
 	mk2::addLog ""
     }
-    
+
     #Put the device into FPGA programming mode
     after 1000
     sendCommand !
     update
     after 1000
     update
-    
+
     #Open the hex file
     mk2::addLog "Opening FPGA image file..."
     if {![mk2::openDevice2File "./Firmware/MK2/Device2.hex"]} {
@@ -1609,7 +1602,7 @@ proc mk2::fpgaUpgrade {} {
     mk2::addLog "Reading file complete"
     set mk2::fpgaProgress 10
     update
-    
+
     #Erase the device
     mk2::addLog "Erasing Device 2..."
     if {![mk2::device2Erase]} {
@@ -1622,7 +1615,7 @@ proc mk2::fpgaUpgrade {} {
     mk2::addLog "Erase complete."
     set mk2::fpgaProgress 40
     update
-    
+
     #Program and verify the device
     mk2::addLog "Programming device #2..."
     if {![mk2::device2Write]} {
@@ -1635,38 +1628,38 @@ proc mk2::fpgaUpgrade {} {
     mk2::addLog "Programming Complete."
     set mk2::fpgaProgress 70
     update
-    
+
     #Restore the device from FPGA programming mode
     usbSerial::sendByte !
     update
-    
+
     tk_messageBox	\
 	-message "Firmware upgrade complete.\nPlease unplug the CircuitGear and\npress OK to continue..."	\
 	-default ok	\
 	-type ok
-    
+
     set mk2::fpgaProgress 80
     update
-    
+
     tk_messageBox	\
 	-message "Please reconnect the CircuitGear and press OK to continue..."	\
 	-default ok	\
 	-type ok
-    
+
     set mk2::fpgaProgress 100
     update
-    
+
     wm deiconify .wave
-    wm deiconify .digio	
+    wm deiconify .digio
     wm deiconify .
     raise .
     focus .
     destroy .fpga
-    
+
     update
-    
+
     usbSerial::openSerialPort
-    
+
 }
 
 proc mk2::openDevice2File {hexFile} {
@@ -1684,33 +1677,33 @@ proc mk2::openDevice2File {hexFile} {
 	mk2::addLog "Open firmware file...complete."
 	update
     }
-    
+
     set firmware::device2Data {}
     for {set i 0} {$i < $firmware::device2FlashSize} {incr i} {
 	lappend firmware::device2Data 255
     }
-    
+
     set baseAddress 0
     set start $firmware::flashSize
     set end 0
-    
+
     mk2::addLog "Reading firmware file..."
     mk2::addChar "0%"
     update
-    
+
     set lcount 0
-    
+
     set nextUpdate 5
-    
+
     while {[gets $fileHandle line] >= 0} {
-	
+
 	set record [firmware::processRecord $line]
 	if {$record==-1} {
 	    mk2::addLog "Failed to process hex file."
 	    close $fileHandle
 	    return 0
 	}
-	
+
 	#Process record according to type
 	switch [lindex $record 2] {
 	    0 {
@@ -1735,7 +1728,7 @@ proc mk2::openDevice2File {hexFile} {
 		    set end [expr {$baseAddress+$offset+$length-1}]
 		}
 	    } 1 {
-		mk2::addLog "\nReading firmware file...complete." 
+		mk2::addLog "\nReading firmware file...complete."
 		close $fileHandle
 		#Figure out the last sector in the flash file
 		set lastByte $firmware::device2FlashSize
@@ -1756,7 +1749,7 @@ proc mk2::openDevice2File {hexFile} {
 		puts "New base address $baseAddress"
 	    }
 	}
-	
+
 	set currentProgress [expr {round($lcount*1.0/$ltotal*100)}]
 	if {$currentProgress >= $nextUpdate} {
 	    .fpga.log delete "insert linestart" "insert lineend"
@@ -1766,9 +1759,9 @@ proc mk2::openDevice2File {hexFile} {
 	}
 
 	incr lcount
-	
+
     }
-    
+
     #We should never reach here
     mk2:addLog "ERROR: Premature end of file encountered!"
     return 0
@@ -1776,20 +1769,20 @@ proc mk2::openDevice2File {hexFile} {
 }
 
 proc mk2::device2Erase {} {
-    
+
     update
-    
+
     for {set i 0} {$i <= $firmware::device2LastSector} {incr i} {
-	
+
 	mk2::addLog "Erasing Sector $i"
 	update
-	
+
 	#Start the erase cycle
 	usbSerial::sendByte "X"
 	usbSerial::sendByte [format "%c" $i]
-	
+
 	set firmware::eraseStatus starting
-	
+
 	while {($firmware::eraseStatus!="X")} {
 	    update
 	    set firmware::afterHandle [after 5000 {set firmware::status timeout}]
@@ -1811,28 +1804,28 @@ proc mk2::device2Erase {} {
 		return 0
 	    }
 	}
-	
+
 	mk2::addLog "Sector $i Erased"
-	
+
     }
-    
+
     mk2::addLog ""
     mk2::addLog "Device 2 flash erase complete."
     return 1
-    
+
 }
 
 proc mk2::device2Write {} {
 
     set pageAddress 0
     set byteAddress 0
-    
+
     mk2::addLog "Writing to Device 2..."
-    
+
     mk2::addChar "0%"
-    
+
     set endPage [expr {ceil(($firmware::device2LastSector+1)*256.0)}]
-    
+
     for {set pageAddress 0} {$pageAddress <= $endPage} {incr pageAddress} {
 	#Fill the buffer
 	set firmware::status writingBuffer
@@ -1851,18 +1844,18 @@ proc mk2::device2Write {} {
 	    set pageAddress [expr {$pageAddress - 1}]
 	    return 0
 	}
-	
+
 	.fpga.log delete "insert linestart" "insert lineend"
 	mk2::addChar "[expr {round(($pageAddress*1.0/$endPage)*100)}]%"
-	
+
     }
-    
+
     .fpga.log delete "insert linestart" "insert lineend"
     mk2::addLog "100%"
     mk2::addLog "Writing to Device 2 complete."
-    
+
     return 1
-    
+
 }
 
 #Additional tone burst controls
@@ -1873,116 +1866,116 @@ if {![winfo exists $wavePath.trigger]} {
     frame $wavePath.trigger	\
 	-relief groove	\
 	-borderwidth 2
-    
+
     frame $wavePath.trigger.waveMode	\
 	-relief groove	\
 	-borderwidth 1
-    
+
     label $wavePath.trigger.waveMode.title	\
 	-text "Waveform Generator\nTrigger Mode:"	\
 	-font {-weight bold -size -12}
-    
+
     radiobutton $wavePath.trigger.waveMode.normal	\
 	-text "Free-Running"	\
 	-value normal	\
 	-variable wave::waveTriggerMode	\
 	-command wave::selectWaveTriggerMode
-    
+
     radiobutton $wavePath.trigger.waveMode.triggered	\
 	-text "Triggered"	\
 	-value triggered	\
 	-variable wave::waveTriggerMode	\
 	-command wave::selectWaveTriggerMode
-    
+
     grid $wavePath.trigger.waveMode.title -row 0 -sticky w
     grid $wavePath.trigger.waveMode.normal -row 1 -sticky w
     grid $wavePath.trigger.waveMode.triggered -row 2 -sticky w
-    
+
     #Frame for waveform generator output mode controls
     frame $wavePath.trigger.outMode	\
 	-relief groove	\
 	-borderwidth 1
-    
+
     label $wavePath.trigger.outMode.title	\
 	-text "Waveform Generator\nOutput Mode:"	\
 	-font {-weight bold -size -12}
-    
+
     radiobutton $wavePath.trigger.outMode.normal	\
 	-text "Continuous"	\
 	-value continuous	\
 	-variable wave::waveOutputMode	\
 	-command wave::selectWaveOutputMode
-    
+
     radiobutton $wavePath.trigger.outMode.toneBurst	\
 	-text "Tone Burst"	\
 	-value toneBurst		\
 	-variable wave::waveOutputMode	\
 	-command wave::selectWaveOutputMode
-    
+
     grid $wavePath.trigger.outMode.title -row 0 -sticky w
     grid $wavePath.trigger.outMode.normal -row 1 -sticky w
     grid $wavePath.trigger.outMode.toneBurst -row 2 -sticky w
-    
+
     #Frame for trigger source selectors
     frame $wavePath.trigger.source	\
 	-relief groove	\
 	-borderwidth 1
-    
+
     label $wavePath.trigger.source.title	\
 	-text "Trigger Source:"	\
 	-font {-weight bold -size -12}
-    
+
     radiobutton $wavePath.trigger.source.external	\
 	-text "External"	\
 	-value external	\
 	-variable wave::triggerSource	\
 	-command wave::selectTriggerSource
-    
+
     radiobutton $wavePath.trigger.source.manual	\
 	-text "Manual"	\
 	-value manual	\
 	-variable wave::triggerSource	\
 	-command wave::selectTriggerSource
-    
+
     grid $wavePath.trigger.source.title -row 0 -sticky w
-    grid $wavePath.trigger.source.external -row 1 -sticky w 
+    grid $wavePath.trigger.source.external -row 1 -sticky w
     grid $wavePath.trigger.source.manual -row 2 -sticky w
-    
+
     frame $wavePath.trigger.cycles	\
 	-relief groove	\
 	-borderwidth 1
-    
+
     label $wavePath.trigger.cycles.title	\
 	-text "Trigger Cycles"	\
 	-font {-weight bold -size -12}
-    
+
     label $wavePath.trigger.cycles.onLabel	\
 	-text "On:"	\
 	-width 8
-    
+
     button $wavePath.trigger.cycles.onCycles	\
 	-textvariable wave::onCycles	\
 	-command wave::modifyOnCycles	\
 	-width 7
-    
+
     label $wavePath.trigger.cycles.offLabel	\
 	-text "Off:"	\
 	-width 8
-    
+
     button $wavePath.trigger.cycles.offCycles	\
 	-textvariable wave::offCycles	\
 	-command wave::modifyOffCycles		\
 	-width 7
-    
+
     label $wavePath.trigger.cycles.repeatLabel	\
 	-text "Repeat:"	\
 	-width 8
-    
+
     button $wavePath.trigger.cycles.repeatCycles	\
 	-textvariable wave::repeatCycles	\
 	-command wave::modifyRepeatCycles	\
 	-width 7
-    
+
     grid $wavePath.trigger.cycles.title -row 0 -columnspan 2
     grid $wavePath.trigger.cycles.onLabel -row 1 -column 0
     grid $wavePath.trigger.cycles.onCycles -row 1 -column 1
@@ -1990,17 +1983,16 @@ if {![winfo exists $wavePath.trigger]} {
     grid $wavePath.trigger.cycles.offCycles -row 2 -column 1
     grid $wavePath.trigger.cycles.repeatLabel -row 3 -column 0
     grid $wavePath.trigger.cycles.repeatCycles -row 3 -column 1
-    
+
     button $wavePath.trigger.manualTrigger	\
 	-text "Manual Trigger"	\
 	-command {sendCommand WT}
-    
+
     grid $wavePath.trigger.waveMode -row 1 -column 0 -sticky news -columnspan 2
     grid $wavePath.trigger.outMode -row 2 -column 0 -sticky news -columnspan 2
     grid $wavePath.trigger.source -row 3 -column 0 -sticky news -columnspan 2
     grid $wavePath.trigger.cycles -row 4 -column 0 -sticky news -columnspan 2
     grid $wavePath.trigger.manualTrigger -row 5 -column 0 -sticky news -columnspan 2 -pady 10
-    
-    
+
     grid $wavePath.trigger -row 0 -column 4 -sticky n -padx 5
 }
