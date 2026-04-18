@@ -51,8 +51,7 @@
 #	display::updateMarker
 #	display::toggleXYMode
 #	display::plotXY
-#	
-
+#
 
 namespace eval display {
 
@@ -117,7 +116,7 @@ set xyEnable 0
 # Assigns the widget path for the display widget.
 proc display::setDisplayPath {newDisplayPath} {
 	variable displayPath
-	
+
 	set displayPath $newDisplayPath
 }
 
@@ -126,7 +125,7 @@ proc display::setDisplayPath {newDisplayPath} {
 # Returns the current widget path for the display widget.
 proc display::getDisplayPath {} {
 	variable displayPath
-	
+
 	return $displayPath
 }
 
@@ -137,40 +136,40 @@ proc display::getDisplayPath {} {
 proc display::buildDisplay {} {
 
 	set displayPath [getDisplayPath]
-	
+
 	#Scope status bar
 	label $displayPath.statusBar	\
 		-height -2	\
 		-relief groove	\
 		-text ""
-	
+
 	#Main display canvas
 	canvas $displayPath.display	\
 		-background $display::backgroundColor	\
 		-width $display::graphWidth	\
-		-height $display::graphHeight	
-	
-	#Small handle label for resizing the display	
+		-height $display::graphHeight
+
+	#Small handle label for resizing the display
 	label $displayPath.gripper	\
 		-image [image create photo -file $::images/Gripper.gif]
-	
+
 	bind $displayPath.gripper <Button-1> {set display::gripperStart [list %X %Y]}
 	bind $displayPath.gripper <B1-Motion> {display::moveGripper %X %Y}
-	
+
 	#Create pop-up menus
 	cursor::createCursorPopup "$displayPath.display"
 	display::createGridPopup "$displayPath.display" normal
-	
+
 	#Create ground reference cursors
 	cursor::drawChAGndCursor
 	cursor::drawChBGndCursor
-	
+
 	#Draw the trigger level cursor
 	cursor::drawTriggerCursor
-	
+
 	#Draw the trigger point cursor
 	cursor::drawXCursor
-	
+
 }
 
 # display::buildGraph
@@ -181,14 +180,14 @@ proc display::buildGraph {} {
 
 	#Build the widgets for the strip chart graph
 	set displayPath [getDisplayPath]
-	
+
 	#Main canvas for the graph display
 	canvas $displayPath.graph	\
 		-background $display::backgroundColor	\
 		-width $display::graphWidth	\
 		-height $display::graphHeight	\
 		-xscrollcommand "$displayPath.xScroll.scroller set"
-		
+
 	#Frame to hold the x-axis zoom controls
 	frame $displayPath.xScroll
 	scrollbar $displayPath.xScroll.scroller	\
@@ -204,7 +203,7 @@ proc display::buildGraph {} {
 	grid $displayPath.xScroll.scroller -row 0 -column 1 -sticky we
 	grid columnconfig $displayPath.xScroll 1 -weight 1
 	grid $displayPath.xScroll.zoomIn -row 0 -column 2
-	
+
 	#Create pop-up menus
 	cursor::createCursorPopup "$displayPath.graph"
 	display::createGridPopup "$displayPath.graph" strip
@@ -212,7 +211,7 @@ proc display::buildGraph {} {
 }
 
 # display::setMode
-# 
+#
 # Selects the oscilloscope display or the strip chart display.  Places the appropriate widgets
 # and calls all procedures necessary to update the display/graph after the change.
 proc display::setMode {mode} {
@@ -226,17 +225,17 @@ proc display::setMode {mode} {
 		grid forget $displayPath.statusBar
 		grid forget $displayPath.display
 		grid forget $displayPath.gripper
-	
+
 		#Show the strip chart display
 		grid $displayPath.statusBar -row 0 -column 0 -sticky we
 		grid $displayPath.graph -row 1 -column 0
 		grid $displayPath.gripper -row 1 -column 0 -sticky se -ipadx 0 -pady 0 -padx 0 -pady 0
 		grid $displayPath.xScroll -row 2 -column 0 -sticky we
-		
+
 		raise $displayPath.gripper
-	
+
 		set displayMode strip
-		
+
 		#Redraw any cursors that are enabled
 		cursor::drawChAGndCursor
 		cursor::drawChBGndCursor
@@ -249,15 +248,15 @@ proc display::setMode {mode} {
 		grid forget $displayPath.graph
 		grid forget $displayPath.gripper
 		grid forget $displayPath.xScroll
-		
+
 		#Show the sampling display
 		grid $displayPath.statusBar -row 0 -column 0 -stick we
 		grid $displayPath.display -row 1 -column 0
 		grid $displayPath.gripper -row 1 -column 0 -sticky se -ipadx 0 -ipady 0 -padx 0 -pady 0
 		raise $displayPath.gripper
-	
+
 		set displayMode normal
-		
+
 		#Redraw any cursors that are enabled
 		cursor::drawChAGndCursor
 		cursor::drawChBGndCursor
@@ -265,7 +264,7 @@ proc display::setMode {mode} {
 		cursor::reDrawChACursor
 		cursor::reDrawChBCursor
 	}
-	
+
 	display::drawAxes
 }
 
@@ -280,12 +279,11 @@ proc display::resizeDisplay {w h} {
 	variable xAxisStart
 	variable xAxisEnd
 	variable displayMode
-	
-	
+
 	#Save the new geometry
 	set display::graphWidth $w
 	set display::graphHeight $h
-	
+
 	#Make sure we don't make the graph too small
 	if {$display::graphWidth < $display::minimumGraphWidth} {
 		set display::graphWidth $display::minimumGraphWidth
@@ -293,7 +291,7 @@ proc display::resizeDisplay {w h} {
 	if {$display::graphHeight < $display::minimumGraphHeight} {
 		set display::graphHeight $display::minimumGraphHeight
 	}
-	
+
 	#Make sure the display is square
 	if {$display::graphHeight!=$display::graphWidth} {
 		set display::graphWidth $display::graphHeight
@@ -302,36 +300,36 @@ proc display::resizeDisplay {w h} {
 	#Resize the scope display and the strip chart
 	[getDisplayPath].display configure -width $display::graphWidth -height $display::graphHeight
 	[getDisplayPath].graph configure -width $display::graphWidth -height $display::graphHeight
-	
+
 	#Resize the plot area
 	set yAxisEnd [expr {$display::graphHeight-$display::bottomMargin}]
 	set newEnd [expr {$display::graphWidth-$display::rightMargin}]
 	set deltaWidth [expr {$newEnd-$xAxisEnd}]
 	set xAxisEnd $newEnd
-	
+
 	#Redraw the axes
 	display::drawAxes
-	
+
 	#Update the channel reference positions
 	cursor::reDrawChAGndCursor
 	cursor::reDrawChBGndCursor
-	
+
 	#Update the trigger cursor
 	cursor::reDrawTriggerCursor
-	
+
 	#Update the trigger point cursor
 	cursor::reDrawXCursor
-	
+
 	#Update the measurement cursors
 	cursor::reDrawChACursor
 	cursor::reDrawChBCursor
 	cursor::reDrawTimeCursors
-	
+
 	#Update the x-axis labels in strip chart mode
 	if {$display::displayMode=="strip"} {
 		display::xScrollService
 	}
-	
+
 	#Remove the traces - they will be redrawn on the next sample update
 	display::clearDisplay
 
@@ -346,17 +344,17 @@ proc display::moveGripper {x y} {
 	#Pull the last x,y coordinates
 	set prevX [lindex $display::gripperStart 0]
 	set prevY [lindex $display::gripperStart 1]
-	
+
 	#Calculate the change in position of the gripper
 	set deltaX [expr {$x-$prevX}]
 	set deltaY [expr {$y-$prevY}]
 
 	#Resize the graph area
 	display::resizeDisplay [expr {$display::graphWidth+$deltaX}] [expr {$display::graphHeight+$deltaY}]
-	
+
 	#Store the current gripper position for next time
 	set display::gripperStart [list $x $y]
-	
+
 }
 
 # display::drawAxes
@@ -372,10 +370,10 @@ proc display::drawAxes {} {
 	} else {
 		set displayPath "$displayPath.graph"
 	}
-	
+
 	#Remove the old axes
 	$displayPath delete axis
-	
+
 	#Draw the X-Axis
 	$displayPath create line	\
 		$display::xAxisStart $display::yAxisEnd	\
@@ -387,7 +385,7 @@ proc display::drawAxes {} {
 		$display::xAxisEnd $display::yAxisStart	\
 		-tag axis	\
 		-fill $display::axisColor
-		
+
 	#Draw the Y-Axis
 	$displayPath create line	\
 		$display::xAxisStart $display::yAxisStart	\
@@ -399,7 +397,7 @@ proc display::drawAxes {} {
 		$display::xAxisEnd $display::yAxisEnd	\
 		-tag axis	\
 		-fill $display::axisColor
-		
+
 	#Draw the X-Grid
 	$displayPath delete xAxisGrid
 	if {$display::xGridEnabled} {
@@ -413,7 +411,7 @@ proc display::drawAxes {} {
 				-dash .
 		}
 	}
-	
+
 	#Draw the Y-Grid
 	$displayPath delete yAxisGrid
 	if {$display::yGridEnabled} {
@@ -427,14 +425,14 @@ proc display::drawAxes {} {
 				-dash .
 		}
 	}
-	
+
 	#Draw y-axes and minor tick marks
 	if {$display::xGridEnabled} {
 		$displayPath create line	\
 			[expr {$display::xAxisStart+($display::xAxisEnd-$display::xAxisStart)/2.0}] $display::yAxisStart	\
 			[expr {$display::xAxisStart+($display::xAxisEnd-$display::xAxisStart)/2.0}] $display::yAxisEnd	\
 			-tag xAxisGrid	\
-			-fill $display::xGridColor	
+			-fill $display::xGridColor
 		set tickLeft [expr {$display::xAxisStart+($display::xAxisEnd-$display::xAxisStart)/2.0-($display::xAxisEnd-$display::xAxisStart)/100.0}]
 		set tickRight [expr {$display::xAxisStart+($display::xAxisEnd-$display::xAxisStart)/2.0+($display::xAxisEnd-$display::xAxisStart)/100.0}]
 		for {set i 1} {$i < 50} {incr i} {
@@ -445,14 +443,14 @@ proc display::drawAxes {} {
 				-tag xAxisGrid
 		}
 	}
-	
+
 	#Draw x-axes and minor tick marks
 	if {$display::yGridEnabled} {
 		$displayPath create line	\
 			$display::xAxisStart [expr {$display::yAxisStart+($display::yAxisEnd-$display::yAxisStart)/2.0}]	\
 			$display::xAxisEnd [expr {$display::yAxisStart+($display::yAxisEnd-$display::yAxisStart)/2.0}]	\
 			-tag yAxisGrid	\
-			-fill $display::yGridColor	
+			-fill $display::yGridColor
 		set tickTop [expr {$display::yAxisStart+($display::yAxisEnd-$display::yAxisStart)/2.0-($display::yAxisEnd-$display::yAxisStart)/100.0}]
 		set tickBottom [expr {$display::yAxisStart+($display::yAxisEnd-$display::yAxisStart)/2.0+($display::yAxisEnd-$display::yAxisStart)/100.0}]
 		for {set i 1} {$i < 50} {incr i} {
@@ -468,226 +466,224 @@ proc display::drawAxes {} {
 
 # display::plotData
 #
-# This procedure plots the A and B traces on the oscilloscope display using the data currently stored in the 
-# scope::scopeData array.
+# This procedure plots the A and B traces on the oscilloscope display
+# using the data currently stored in the scope::scopeData array.
 proc display::plotData {} {
 
-	#Get the current scope data
-	set dataA [lindex $scope::scopeData 0]
-	set dataB [lindex $scope::scopeData 1]
-		
-	#Decide if we need to interpolate the data
-	if {[timebase::getSamplingPeriod] < 100E-6} {
-		if {$::interpEnable} {
-			set dataA [interpolation::interpolate $dataA]
-			set dataB [interpolation::interpolate $dataB]
-			set samplePeriod [expr {[timebase::getSamplingPeriod]/5.0}]
-			#The trigger sample is always mid-way through the sample buffer
-			set triggerSample [expr {$scope::sampleDepth/4.0*10}]
-		} else {
-			set triggerSample [expr {$scope::sampleDepth/2}]
-			set samplePeriod [timebase::getSamplingPeriod]
-		}
-	} else {
-		set samplePeriod [timebase::getSamplingPeriod]
-		#The trigger sample is always mid-way through the sample buffer
-		set triggerSample [expr {$scope::sampleDepth/2}]
-	}
-	
-	
-	if {($::deviceType=="mini")||($::deviceType=="sig")} {
-		#On the fastest timebase, the trigger point can jitter slightly, align it, if necessary
-		if {([timebase::getSamplingPeriod] < 100E-6)&&($scope::triggerState ==2)} {
-			#Get the trigger level, in samples
-			set triggerLevel [vertical::voltageToSample $cursor::triggerVoltage $trigger::triggerSource]
-			if {($trigger::triggerSource=="A")||($trigger::triggerSource=="a")} {
-				set searchData $dataA
-			} else {
-				set searchData $dataB
-			}
-			for {set i 0} {$i <= 10} {incr i} {
-				set prevSample [lindex $searchData [expr {$triggerSample+($i-1)}]]
-				set currentSample [lindex $searchData [expr {$triggerSample+$i}]]
-				if {$trigger::triggerSlope == "rising"} {
-					if {($currentSample <= $triggerLevel)&&($prevSample > $triggerLevel)} {
-						set triggerSample [expr {$triggerSample+$i}]
-						break
-					}
-				} else {
-					if {($currentSample >= $triggerLevel)&&($prevSample < $triggerLevel)} {
-						set triggerSample [expr {$triggerSample+$i}]
-						break
-					}
-				}
-			}
-		}
-	}
-	
-	#Create lists for screen points
-	set plotDataA {}
-	set plotDataB {}
-	
-	#Some pre-calculations to speed things up
-	set displayHeight [expr {$display::yAxisEnd-$display::yAxisStart}]
-	
-	#Determine the spacing between samples
-	set displayTime [expr {10.0*$timebase::timebaseSetting}]
-	set pixelTime [expr {$displayTime/($display::xAxisEnd-$display::xAxisStart)}]
-	
-	#Determine the first sample that should appear on the screen
-	set firstSample 0
-	#Determine the last sample that should appear on the screen
-	set lastSample [llength $dataA]
-	set rightBorderSample [llength $dataA]
-	
-	#If the timebase changes during plotting exit gracefully
-	if {($firstSample<0)||($lastSample>[llength $dataA])} {return}
-	
-	#Calculate the index of the sample that should appear immediately to the right of the left border
-	set leftBorderSample [expr {round(floor($triggerSample-($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio*$pixelTime/($timebase::sampleIncrement*$samplePeriod)))}]
-		
-	if {$leftBorderSample > 0} {
-		#Straight-line interpolation to determine the position of the last samples on the right border of the display
-		set x1 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($leftBorderSample-1-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
-		set x2 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($leftBorderSample-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
-		#Calculate the border point for channel A
-		set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA [expr {$leftBorderSample-1}]] A]/(10*[vertical::getBoxSize A]))}]
-		set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA $leftBorderSample] A]/(10*[vertical::getBoxSize A]))}]
-		#Straight line interpolation
-		set m [expr {($y2-$y1)/($x2-$x1)}]
-		set b [expr {$y1-$m*$x1}]
-		set yf [expr {$m*$display::xAxisStart+$b}]
-		
-		lappend plotDataA $display::xAxisStart
-		lappend plotDataA $yf
-		
-		#Calculate the border point for channel B
-		set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB [expr {$leftBorderSample-1}]] B]/(10*[vertical::getBoxSize B]))}]
-		set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $leftBorderSample] B]/(10*[vertical::getBoxSize B]))}]
-		#Straight line interpolation
-		set m [expr {($y2-$y1)/($x2-$x1)}]
-		set b [expr {$y1-$m*$x1}]
-		set yf [expr {$m*$display::xAxisStart+$b}]
-		
-		lappend plotDataB $display::xAxisStart
-		lappend plotDataB $yf
-	}
-	
-	#Convert the bulk of the samples to screen coordinates
-	for {set i $firstSample} {$i < $lastSample} {incr i} {
+    #Get the current scope data
+    set dataA [lindex $scope::scopeData 0]
+    set dataB [lindex $scope::scopeData 1]
 
-		set x [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($i-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
-			
-		if {($x >= $display::xAxisStart) &&  ($x <= $display::xAxisEnd)} {
-			
-			set y [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA $i] A]/(10*[vertical::getBoxSize A]))}]
-			lappend plotDataA $x
-			lappend plotDataA $y
-		
-			set y [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $i] B]/(10*[vertical::getBoxSize B]))}]
-			lappend plotDataB $x
-			lappend plotDataB $y
-		}
-		
-		if {$x >= $display::xAxisEnd} {
-			set rightBorderSample $i
+    #Decide if we need to interpolate the data
+    if {[timebase::getSamplingPeriod] < 100E-6} {
+	if {$::interpEnable} {
+	    set dataA [interpolation::interpolate $dataA]
+	    set dataB [interpolation::interpolate $dataB]
+	    set samplePeriod [expr {[timebase::getSamplingPeriod]/5.0}]
+	    #The trigger sample is always mid-way through the sample buffer
+	    set triggerSample [expr {$scope::sampleDepth/4.0*10}]
+	} else {
+	    set triggerSample [expr {$scope::sampleDepth/2}]
+	    set samplePeriod [timebase::getSamplingPeriod]
+	}
+    } else {
+	set samplePeriod [timebase::getSamplingPeriod]
+	#The trigger sample is always mid-way through the sample buffer
+	set triggerSample [expr {$scope::sampleDepth/2}]
+    }
+
+    if {($::deviceType=="mini")||($::deviceType=="sig")} {
+	#On the fastest timebase, the trigger point can jitter slightly, align it, if necessary
+	if {([timebase::getSamplingPeriod] < 100E-6)&&($scope::triggerState ==2)} {
+	    #Get the trigger level, in samples
+	    set triggerLevel [vertical::voltageToSample $cursor::triggerVoltage $trigger::triggerSource]
+	    if {($trigger::triggerSource=="A")||($trigger::triggerSource=="a")} {
+		set searchData $dataA
+	    } else {
+		set searchData $dataB
+	    }
+	    for {set i 0} {$i <= 10} {incr i} {
+		set prevSample [lindex $searchData [expr {$triggerSample+($i-1)}]]
+		set currentSample [lindex $searchData [expr {$triggerSample+$i}]]
+		if {$trigger::triggerSlope == "rising"} {
+		    if {($currentSample <= $triggerLevel)&&($prevSample > $triggerLevel)} {
+			set triggerSample [expr {$triggerSample+$i}]
 			break
+		    }
+		} else {
+		    if {($currentSample >= $triggerLevel)&&($prevSample < $triggerLevel)} {
+			set triggerSample [expr {$triggerSample+$i}]
+			break
+		    }
 		}
+	    }
 	}
-	
-	if {$rightBorderSample < $lastSample} {
-		#Straight-line interpolation to determine the position of the last samples on the right border of the display
-		set x1 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($rightBorderSample-1-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
-		set x2 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($rightBorderSample-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
-		#Calculate the border point for channel A
-		set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA [expr {$rightBorderSample-1}]] A]/(10*[vertical::getBoxSize A]))}]
-		set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA $rightBorderSample] A]/(10*[vertical::getBoxSize A]))}]
-		#Straight line interpolation
-		set m [expr {($y2-$y1)/($x2-$x1)}]
-		set b [expr {$y1-$m*$x1}]
-		set yf [expr {$m*$display::xAxisEnd+$b}]
-		
-		lappend plotDataA $display::xAxisEnd
-		lappend plotDataA $yf
-		
-		#Calculate the border point for channel B
-		set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB [expr {$rightBorderSample-1}]] B]/(10*[vertical::getBoxSize B]))}]
-		set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $rightBorderSample] B]/(10*[vertical::getBoxSize B]))}]
-		#Straight line interpolation
-		set m [expr {($y2-$y1)/($x2-$x1)}]
-		set b [expr {$y1-$m*$x1}]
-		set yf [expr {$m*$display::xAxisEnd+$b}]
-		
-		lappend plotDataB $display::xAxisEnd
-		lappend plotDataB $yf
+    }
+
+    #Create lists for screen points
+    set plotDataA {}
+    set plotDataB {}
+
+    #Some pre-calculations to speed things up
+    set displayHeight [expr {$display::yAxisEnd-$display::yAxisStart}]
+
+    #Determine the spacing between samples
+    set displayTime [expr {10.0*$timebase::timebaseSetting}]
+    set pixelTime [expr {$displayTime/($display::xAxisEnd-$display::xAxisStart)}]
+
+    #Determine the first sample that should appear on the screen
+    set firstSample 0
+    #Determine the last sample that should appear on the screen
+    set lastSample [llength $dataA]
+    set rightBorderSample [llength $dataA]
+
+    #If the timebase changes during plotting exit gracefully
+    if {($firstSample<0)||($lastSample>[llength $dataA])} {return}
+
+    # Calculate the index of the sample that should appear
+    # immediately to the right of the left border
+    set leftBorderSample [expr {round(floor($triggerSample-($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio*$pixelTime/($timebase::sampleIncrement*$samplePeriod)))}]
+
+    if {$leftBorderSample > 0} {
+	#Straight-line interpolation to determine the position of the last samples on the right border of the display
+	set x1 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($leftBorderSample-1-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
+	set x2 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($leftBorderSample-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
+	#Calculate the border point for channel A
+	set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA [expr {$leftBorderSample-1}]] A]/(10*[vertical::getBoxSize A]))}]
+	set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA $leftBorderSample] A]/(10*[vertical::getBoxSize A]))}]
+	#Straight line interpolation
+	set m [expr {($y2-$y1)/($x2-$x1)}]
+	set b [expr {$y1-$m*$x1}]
+	set yf [expr {$m*$display::xAxisStart+$b}]
+
+	lappend plotDataA $display::xAxisStart
+	lappend plotDataA $yf
+
+	#Calculate the border point for channel B
+	set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB [expr {$leftBorderSample-1}]] B]/(10*[vertical::getBoxSize B]))}]
+	set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $leftBorderSample] B]/(10*[vertical::getBoxSize B]))}]
+	#Straight line interpolation
+	set m [expr {($y2-$y1)/($x2-$x1)}]
+	set b [expr {$y1-$m*$x1}]
+	set yf [expr {$m*$display::xAxisStart+$b}]
+
+	lappend plotDataB $display::xAxisStart
+	lappend plotDataB $yf
+    }
+
+    #Convert the bulk of the samples to screen coordinates
+    for {set i $firstSample} {$i < $lastSample} {incr i} {
+
+	set x [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($i-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
+
+	if {($x >= $display::xAxisStart) &&  ($x <= $display::xAxisEnd)} {
+
+	    set y [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA $i] A]/(10*[vertical::getBoxSize A]))}]
+	    lappend plotDataA $x
+	    lappend plotDataA $y
+
+	    set y [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $i] B]/(10*[vertical::getBoxSize B]))}]
+	    lappend plotDataB $x
+	    lappend plotDataB $y
 	}
-	
-	#Display Persistence Service
-	persist::updatePersist $plotDataA $plotDataB
-	
-	#Draw the Traces on the Screen
-	#set displayPath [display::getDisplayPath]
-	
-	#Channel A Trace
-	#$displayPath.display delete waveDataA
-	#if {$vertical::enableA} {
-	#	$displayPath.display create line	\
+
+	if {$x >= $display::xAxisEnd} {
+	    set rightBorderSample $i
+	    break
+	}
+    }
+
+    if {$rightBorderSample < $lastSample} {
+	#Straight-line interpolation to determine the position of the last samples on the right border of the display
+	set x1 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($rightBorderSample-1-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
+	set x2 [expr {($display::xAxisEnd-$display::xAxisStart)*$cursor::timeRatio+$display::xAxisStart+($rightBorderSample-$triggerSample)*$timebase::sampleIncrement*$samplePeriod/$pixelTime}]
+	#Calculate the border point for channel A
+	set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA [expr {$rightBorderSample-1}]] A]/(10*[vertical::getBoxSize A]))}]
+	set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataA $rightBorderSample] A]/(10*[vertical::getBoxSize A]))}]
+	#Straight line interpolation
+	set m [expr {($y2-$y1)/($x2-$x1)}]
+	set b [expr {$y1-$m*$x1}]
+	set yf [expr {$m*$display::xAxisEnd+$b}]
+
+	lappend plotDataA $display::xAxisEnd
+	lappend plotDataA $yf
+
+	#Calculate the border point for channel B
+	set y1 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB [expr {$rightBorderSample-1}]] B]/(10*[vertical::getBoxSize B]))}]
+	set y2 [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $rightBorderSample] B]/(10*[vertical::getBoxSize B]))}]
+	#Straight line interpolation
+	set m [expr {($y2-$y1)/($x2-$x1)}]
+	set b [expr {$y1-$m*$x1}]
+	set yf [expr {$m*$display::xAxisEnd+$b}]
+
+	lappend plotDataB $display::xAxisEnd
+	lappend plotDataB $yf
+    }
+
+    #Display Persistence Service
+    persist::updatePersist $plotDataA $plotDataB
+
+    #Draw the Traces on the Screen
+    #set displayPath [display::getDisplayPath]
+
+    #Channel A Trace
+    #$displayPath.display delete waveDataA
+    #if {$vertical::enableA} {
+    #	$displayPath.display create line	\
 	#		$plotDataA	\
 	#		-tag waveDataA	\
 	#		-fill $display::channelAColor
-	#}
-	
-	#Channel B Trace
-	#$displayPath.display delete waveDataB
-	#if {$vertical::enableB} {
-	#	
-	#	$displayPath.display create line	\
+    #}
+
+    #Channel B Trace
+    #$displayPath.display delete waveDataB
+    #if {$vertical::enableB} {
+    #
+    #	$displayPath.display create line	\
 	#		$plotDataB	\
 	#		-tag waveDataB	\
 	#		-fill $display::channelBColor
-	#}
-	
-	
-	
-	#Display average service and draw the traces on the screen
-	average::updateAverage $plotDataA $plotDataB
-	
-	#Save values for export
-	set export::exportData {}
-	set dataA {}
-	set dataB {}
-	if {$average::levelsOfAverage == "Off"} {
-		for {set i $leftBorderSample} {$i < $rightBorderSample} {incr i} {
+    #}
 
-			lappend dataA [lindex [lindex $scope::scopeData 0] $i]
-			lappend dataB [lindex [lindex $scope::scopeData 1] $i]
-			
-		}
-	} else {
-		for {set i 1} {$i < [llength $average::averagePlotDataA]} {incr i 2} {
-			set sampleA [lindex $average::averagePlotDataA $i]
-			set sampleB [lindex $average::averagePlotDataB $i]
-			
-			#lappend dataA $sampleA
-			#lappend dataB $sampleB
-			
-			lappend dataA [vertical::voltageToSample [expr {(($displayHeight/2.0+$display::yAxisStart-$sampleA)/$displayHeight)*(10*[vertical::getBoxSize A])}] A]
-			lappend dataB [vertical::voltageToSample [expr {(($displayHeight/2.0+$display::yAxisStart-$sampleB)/$displayHeight)*(10*[vertical::getBoxSize B])}] B]
-			
-			#set y [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $i] B]/(10*[vertical::getBoxSize B]))}]
+    #Display average service and draw the traces on the screen
+    average::updateAverage $plotDataA $plotDataB
 
-		}
+    #Save values for export
+    set export::exportData {}
+    set dataA {}
+    set dataB {}
+    if {$average::levelsOfAverage == "Off"} {
+	for {set i $leftBorderSample} {$i < $rightBorderSample} {incr i} {
+
+	    lappend dataA [lindex [lindex $scope::scopeData 0] $i]
+	    lappend dataB [lindex [lindex $scope::scopeData 1] $i]
+
 	}
-	#Add waveform data for channel A
-	lappend export::exportData $dataA
-	#Add waveform data for channel B
-	lappend export::exportData $dataB
-	#Add channel A step size
-	lappend export::exportData [vertical::getStepSize A]
-	#Add channel B step size
-	lappend export::exportData [vertical::getStepSize B]
-	#Add sampling rate
-	lappend export::exportData [timebase::getSamplingRate]
+    } else {
+	for {set i 1} {$i < [llength $average::averagePlotDataA]} {incr i 2} {
+	    set sampleA [lindex $average::averagePlotDataA $i]
+	    set sampleB [lindex $average::averagePlotDataB $i]
+
+	    #lappend dataA $sampleA
+	    #lappend dataB $sampleB
+
+	    lappend dataA [vertical::voltageToSample [expr {(($displayHeight/2.0+$display::yAxisStart-$sampleA)/$displayHeight)*(10*[vertical::getBoxSize A])}] A]
+	    lappend dataB [vertical::voltageToSample [expr {(($displayHeight/2.0+$display::yAxisStart-$sampleB)/$displayHeight)*(10*[vertical::getBoxSize B])}] B]
+
+	    #set y [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*([vertical::convertSampleVoltage [lindex $dataB $i] B]/(10*[vertical::getBoxSize B]))}]
+
+	}
+    }
+    #Add waveform data for channel A
+    lappend export::exportData $dataA
+    #Add waveform data for channel B
+    lappend export::exportData $dataB
+    #Add channel A step size
+    lappend export::exportData [vertical::getStepSize A]
+    #Add channel B step size
+    lappend export::exportData [vertical::getStepSize B]
+    #Add sampling rate
+    lappend export::exportData [timebase::getSamplingRate]
 
 }
 
@@ -706,7 +702,7 @@ proc display::getDisplayHeight {} {
 proc display::getDisplayWidth {} {
 
 	return [expr {$display::xAxisEnd-$display::xAxisStart}]
-	
+
 }
 
 # display::outOfDate
@@ -717,60 +713,60 @@ proc display::getDisplayWidth {} {
 proc display::outOfDate {} {
 
 	set displayPath [getDisplayPath]
-	
+
 	$displayPath.display itemconfigure waveDataA -dash .
 	$displayPath.display itemconfigure waveDataB -dash .
 
 	#Reset the averaging filters
 	average::changeLevels
-	
+
 }
 
 # display::plotScan
 #
-# This procedure plots the A and B traces on the oscilloscope display using the data currently stored in the 
+# This procedure plots the A and B traces on the oscilloscope display using the data currently stored in the
 # strip chart data array.  The trace is drawn using whatever samples are available, even if they do not stretch
 # all the way across the screen.
 proc display::plotScan {} {
 
 	#Make sure we have enough data points to draw a line
 	if {$scope::stripSample < 2} {return}
-	
+
 	#Create some arrays to hold the coordinates for the traces
 	set plotDataA {}
 	set plotDataB {}
-	
+
 	set dataIncr 1
-	
+
 	#Some pre-calculations to speed things up
 	set displayHeight [expr {$display::yAxisEnd-$display::yAxisStart}]
 	set samplePeriod [timebase::getSamplingPeriod]
-	
+
 	#Determine the spacing between samples
 	set displayTime [expr {10.0*$timebase::timebaseSetting}]
 	set pixelTime [expr {$displayTime/($display::xAxisEnd-$display::xAxisStart)}]
-	
+
 	#Process all samples in the strip chart recorder array
 	for {set i 0} {$i < [llength $scope::stripData]} {set i [expr {$i+$dataIncr}]} {
 		set datum [lindex $scope::stripData $i]
 		set xT [lindex $datum 1]
 		set voltA [lindex $datum 2]
 		set voltB [lindex $datum 3]
-		
+
 		set x [expr {$xT*1.0/$pixelTime+$display::xAxisStart}]
 		set yA [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*($voltA/(10*[vertical::getBoxSize A]))}]
 		set yB [expr {$displayHeight/2.0+$display::yAxisStart-$displayHeight*($voltB/(10*[vertical::getBoxSize B]))}]
-	
+
 		lappend plotDataA $x $yA
 		lappend plotDataB $x $yB
 	}
 
 	#Make sure the timebase setting display is up to date
 	#timebase::updateIndicator
-	
+
 	#Plot the traces on the screen
 	set displayPath [display::getDisplayPath]
-	
+
 	#Channel A trace
 	$displayPath.display delete waveDataA
 	if {$vertical::enableA} {
@@ -779,11 +775,11 @@ proc display::plotScan {} {
 			-tag waveDataA	\
 			-fill $display::channelAColor
 	}
-	
+
 	#Channel B trace
 	$displayPath.display delete waveDataB
 	if {$vertical::enableB} {
-		
+
 		$displayPath.display create line	\
 			$plotDataB	\
 			-tag waveDataB	\
@@ -794,38 +790,38 @@ proc display::plotScan {} {
 
 # display::plotStrip
 #
-# This procedure plots the A and B traces on the strip chart display using the data currently stored in the 
+# This procedure plots the A and B traces on the strip chart display using the data currently stored in the
 # strip chart data array.
 proc display::plotStrip {} {
 
 	#Make sure there is enough data to display
 	if {$scope::stripSample < 2} {return}
-	
+
 	#Remove the old traces
 	set displayPath [display::getDisplayPath]
 	$displayPath.graph delete waveDataA
 	$displayPath.graph delete waveDataB
-	
+
 	#Check to see if we need to autoscale or autoscroll
 	display::autoScaleX
 	display::autoScrollX
-	
+
 	#Update the scroll bar
 	display::xScrollService
-	
+
 	set plotDataA {}
 	set plotDataB {}
-	
+
 	#Data sub-sampling for large data sets
 	if {$display::xSpan > $display::graphWidth} {
 		set dataIncr [expr {round(floor(2.0*$display::xSpan/$display::graphWidth))}]
 	} else {
 		set dataIncr 1
 	}
-	
+
 	#Some pre-calculations to speed things up
 	set displayHeight [expr {$display::yAxisEnd-$display::yAxisStart}]
-	
+
 	#Determine which samples need to be shown on the screen
 	set samplesAvailable [expr {$scope::samplesOnDisk+[llength $scope::stripData]}]
 	set first [expr {round(floor($display::xStart/($timebase::stripChartSamplePeriod*1.0E-3)))}]
@@ -839,16 +835,16 @@ proc display::plotStrip {} {
 	if {[expr {$last-$first}]<[expr {2*$dataIncr}]} {
 		return
 	}
-	
+
 	#Process the data that needs to be displayed on the graph
 	for {set i $first} {$i < $last} {set i [expr {$i+$dataIncr}]} {
-		
+
 		#Get this data point
 		set datum [scope::getStripSample $i]
-		
+
 		#X-Coordinate for this point
 		set x [lindex $datum 1]
-		
+
 		#Calculate the screen position of this sample point
 		if {$x >= $display::xStart} {
 			if {$x <= $display::xEnd} {
@@ -865,8 +861,8 @@ proc display::plotStrip {} {
 
 	#Make sure the timebase setting display is up to date
 	#timebase::updateIndicator
-	
-	#Draw the new traces	
+
+	#Draw the new traces
 	if {$vertical::enableA} {
 		$displayPath.graph create line	\
 			$plotDataA	\
@@ -874,13 +870,12 @@ proc display::plotStrip {} {
 			-fill $display::channelAColor
 	}
 	if {$vertical::enableB} {
-		
+
 		$displayPath.graph create line	\
 			$plotDataB	\
 			-tag waveDataB	\
 			-fill $display::channelBColor
 	}
-	
 
 }
 
@@ -891,13 +886,13 @@ proc display::plotStrip {} {
 proc display::clearDisplay {} {
 
 	set displayPath [display::getDisplayPath]
-	
+
 	$displayPath.display delete waveDataA
 	$displayPath.display delete waveDataB
-	
+
 	$displayPath.graph delete waveDataA
 	$displayPath.graph delete waveDataB
-	
+
 }
 
 # display::graphPlotX
@@ -919,10 +914,10 @@ proc display::xAxisLabels {} {
 
 	#Get the graph widget path
 	set displayPath [display::getDisplayPath]
-	
+
 	#Remove the old labels
 	$displayPath.graph delete xAxisLabels
-	
+
 	#Place the new labels
 	for {set i 0} {$i <= 10} {incr i} {
 		#Calculate screen location for label
@@ -950,7 +945,7 @@ proc display::xZoom {dir args} {
 	variable xStart
 	variable xEnd
 	variable xSpan
-	
+
 	#Determine if we are zooming in or out
 	if {$dir == "in"} {
 		#Disable auto scaling
@@ -986,7 +981,7 @@ proc display::xZoom {dir args} {
 		set xSpan [expr {$display::xEnd-$display::xStart}]
 		set midpoint [expr {$display::xStart+$xSpan/2.0}]
 	}
-	
+
 	#Hard limit for zooming out
 	if {$xSpan>100E6} {
 		set xSpan 100E6
@@ -1005,7 +1000,7 @@ proc display::xZoom {dir args} {
 		set xEnd 100E6
 		set xStart 0
 	}
-	
+
 	#Update the display
 	display::xScrollService
 	display::plotStrip
@@ -1014,7 +1009,7 @@ proc display::xZoom {dir args} {
 
 # display::xScroll
 #
-# Scrolls or the strip chart left or right or moves to a specified sample position depending on the input parameter (dir).  
+# Scrolls or the strip chart left or right or moves to a specified sample position depending on the input parameter (dir).
 proc display::xScroll {command args} {
 	variable xStart
 	variable xEnd
@@ -1047,12 +1042,12 @@ proc display::xScroll {command args} {
 			set xStart [expr {round([lindex [lindex $scope::stripData end-1] 1]*$position)}]
 			set xEnd [expr {$xStart+$xSpan}]
 		}
-		
+
 	}
-	
+
 	#Disable auto scaling
 	set display::scrollMode disabled
-	
+
 	#Update the display
 	display::xScrollService
 	display::plotStrip
@@ -1069,10 +1064,10 @@ proc display::xScrollService {} {
 	display::xAxisLabels
 
 	set lastSampleTime [lindex [scope::getStripSample [expr {$scope::stripSample-1}]] 1]
-	
+
 	#Update the time cursors
 	cursor::measureTimeCursors
-	
+
 	#Make sure we have samples to display
 	if {$scope::stripSample==0} {return}
 
@@ -1083,7 +1078,7 @@ proc display::xScrollService {} {
 		#Determine how much of the data is being displayed
 		set start [expr {$xStart*1.0/$lastSampleTime}]
 		set end [expr {$xEnd*1.0/$lastSampleTime}]
-		
+
 		#Adjust the scroll bar
 		[getDisplayPath].xScroll.scroller set $start $end
 	}
@@ -1101,7 +1096,7 @@ proc display::autoScaleX {} {
 
 	if {$display::scrollMode=="autoScale"} {
 		set xStart 0
-		
+
 		#Get the index of the last sample
 		set max [lindex [scope::getStripSample [expr {$scope::stripSample-1}]] 1]
 		if {$max<10} {
@@ -1109,10 +1104,10 @@ proc display::autoScaleX {} {
 		} else {
 			set xEnd $max
 		}
-		
+
 		#Set the span to the full range
 		set xSpan [expr {$xEnd-$xStart}]
-		
+
 		#Update the scroll bar
 		xScrollService
 	}
@@ -1126,10 +1121,9 @@ proc display::autoScrollX {} {
 	variable xStart
 	variable xEnd
 	variable xSpan
-	
-	
+
 	if {$display::scrollMode=="autoScroll"} {
-		
+
 		#Determine the last (newest) sample
 		set lastSampleTime [lindex [scope::getStripSample [expr {$scope::stripSample-1}]] 1]
 		if {$lastSampleTime < 10} {
@@ -1137,7 +1131,7 @@ proc display::autoScrollX {} {
 		} else {
 			set xEnd $lastSampleTime
 		}
-		
+
 		#Adjust the starting point so that the newest sample is the last sample displayed
 		set xStart [expr {$xEnd-$xSpan}]
 		if {$xStart < 0} {
@@ -1156,10 +1150,10 @@ proc display::createGridPopup {displayPath mode} {
 
 	#Create a sub-menu for grid options
 	menu $displayPath.popup.gridMenu -tearoff 0
-	
+
 	#Strip chart controls
 	if {$mode=="strip"} {
-	
+
 		#Scaling/Scrolling Controls
 		$displayPath.popup add separator
 		$displayPath.popup add checkbutton	\
@@ -1180,7 +1174,7 @@ proc display::createGridPopup {displayPath mode} {
 			-label "Set X-Axis Max/Min"	\
 			-command {display::showGraphSettings; focus .graphSettings.x}
 	}
-	
+
 	#Grid-related controls
 	$displayPath.popup add separator
 	$displayPath.popup add cascade	\
@@ -1239,15 +1233,15 @@ proc display::updateScrollMode {} {
 proc display::showGraphSettings {} {
 
 	if {![winfo exists .graphSettings]} {
-		
+
 		toplevel .graphSettings
 		wm title .graphSettings "Strip Chart Graph Settings"
-		
+
 		#Frame to hold x-axis settings
 		frame .graphSettings.x	\
 			-relief groove	\
 			-borderwidth 2
-			
+
 		#X-Axis Limit Settings
 		frame .graphSettings.x.limits	\
 			-relief groove	\
@@ -1294,19 +1288,19 @@ proc display::showGraphSettings {} {
 		grid .graphSettings.x.limits.end -row 2 -column 1
 		grid .graphSettings.x.limits.autoscale -row 3 -column 0 -columnspan 2
 		grid .graphSettings.x.limits.autoscroll -row 4 -column 0 -columnspan 2
-		
+
 		#Place x-axis settings frames
 		grid .graphSettings.x.limits -row 0 -column 0
-		
+
 		#Close button
 		button .graphSettings.close	\
 			-text "Close"	\
 			-command {destroy .graphSettings}
-		
+
 		#Place main settings frames
 		grid .graphSettings.x -row 0 -column 0
 		grid .graphSettings.close -row 1 -column 0 -sticky we
-		
+
 	} else {
 		#Window already exists, bring it up
 		wm deiconify .graphSettings
@@ -1418,18 +1412,18 @@ proc display::updateMarker {snap} {
 
 	#Make sure a marker is defined
 	if {$recorder::sampleMarker==""} {return}
-	
+
 	#Make sure the marker is within our data set
 	if {$recorder::sampleMarker>$scope::stripSample} {return}
-	
+
 	#X-Position of the sample
 	set xT [lindex [scope::getStripSample $recorder::sampleMarker] 1]
-	
+
 	#Turn off auto-scrolling if we are snapping
 	if {$snap} {
 		set display::scrollMode disabled
 	}
-	
+
 	#See if we need to snap the display to the marker position
 	if {$snap} {
 		if {($xT > $display::xEnd)||($xT < $display::xStart)} {
@@ -1439,10 +1433,10 @@ proc display::updateMarker {snap} {
 			display::plotStrip
 		}
 	}
-	
+
 	#X screen coordinate of the sample
 	set x [display::graphPlotX $xT]
-	
+
 	#Y-Coordinate of the sample
 	set displayHeight [expr {$display::yAxisEnd-$display::yAxisStart}]
 	set datum [scope::getStripSample $recorder::sampleMarker]
@@ -1450,7 +1444,7 @@ proc display::updateMarker {snap} {
 	set yB [lindex $datum 3]
 	set yA [expr {$displayHeight/2.0+$display::yAxisStart+$displayHeight*($yA/(10*[lindex $vertical::verticalValues $vertical::verticalIndexA]))}]
 	set yB [expr {$displayHeight/2.0+$display::yAxisStart+$displayHeight*($yB/(10*[lindex $vertical::verticalValues $vertical::verticalIndexB]))}]
-	
+
 	#Draw the marker for channel A
 	$displayPath create line	\
 		$x [expr {$yA-2}]	\
@@ -1471,7 +1465,7 @@ proc display::updateMarker {snap} {
 		-fill $display::channelAColor	\
 		-outline $display::channelAColor	\
 		-tag dataMarker
-	
+
 	#Draw the marker for channel B
 	$displayPath create line	\
 		$x [expr {$yB-2}]	\
@@ -1514,15 +1508,15 @@ proc display::plotXY {} {
 
 	#Make sure XY mode is enabled
 	if {!$display::xyEnable} {return}
-	
+
 	#Get the widget path for the scope display
 	set displayPath [display::getDisplayPath]
 	$displayPath.display delete xyPlotTag
-	
+
 	#Get the current scope data
 	set dataA [lindex $scope::scopeData 0]
 	set dataB [lindex $scope::scopeData 1]
-	
+
 	#X-Data created from channel A
 	set xData {}
 	foreach datumA $dataA {
@@ -1531,7 +1525,7 @@ proc display::plotXY {} {
 		set screenx [expr {$display::xAxisStart+$numDiv*(($display::xAxisEnd-$display::xAxisStart)/10.0)+(($display::xAxisEnd-$display::xAxisStart)/2.0)}]
 		lappend xData $screenx
 	}
-	
+
 	#Y-Data created from channel B
 	set yData {}
 	foreach datumB $dataB {
@@ -1540,13 +1534,13 @@ proc display::plotXY {} {
 		set screeny [expr {$display::yAxisStart+$numDiv*(($display::yAxisEnd-$display::yAxisStart)/-10.0)+(($display::yAxisEnd-$display::yAxisStart)/2.0)}]
 		lappend yData $screeny
 	}
-	
+
 	#Build the X-Y trace data array
 	set plotData {}
 	foreach xDatum $xData yDatum $yData {
 		lappend plotData $xDatum $yDatum
 	}
-	
+
 	#Draw the X-Y trace
 	$displayPath.display create line	\
 		$plotData		\
@@ -1562,20 +1556,20 @@ proc display::showColorOptions {} {
 		focus .color
 		return
 	}
-	
+
 	#Create the color preferences window
 	toplevel .color
 	wm resizable .color 0 0
 	wm title .color "Color Preferences"
-	
+
 	labelframe .color.colors	\
 		-text "Oscilloscope Display"	\
 		-borderwidth 2		\
 		-padx 10	\
 		-pady 10
-	
+
 	label .color.colors.colorLabel -text "Color"
-	
+
 	#Scope Display Background
 	label .color.colors.backgroundLabel -text "Scope Background"
 	button .color.colors.backgroundButton	\
@@ -1590,7 +1584,7 @@ proc display::showColorOptions {} {
 				.color.colors.backgroundButton configure -background $newColor
 			}
 		}
-		
+
 	#Scope X Grid
 	label .color.colors.xGridLabel -text "Scope X Grid"
 	button .color.colors.xGridButton	\
@@ -1605,7 +1599,7 @@ proc display::showColorOptions {} {
 				.color.colors.xGridButton configure -background $newColor
 			}
 		}
-		
+
 	#Scope Y Grid
 	label .color.colors.yGridLabel -text "Scope Y Grid"
 	button .color.colors.yGridButton	\
@@ -1620,7 +1614,7 @@ proc display::showColorOptions {} {
 				.color.colors.yGridButton configure -background $newColor
 			}
 		}
-	
+
 	#Scope Border
 	label .color.colors.borderLabel -text "Scope Border"
 	button .color.colors.borderButton	\
@@ -1635,9 +1629,9 @@ proc display::showColorOptions {} {
 				.color.colors.borderButton configure -background $newColor
 			}
 		}
-		
+
 	grid .color.colors.colorLabel -row 0 -column 1
-	
+
 	grid .color.colors.backgroundLabel -row 1 -column 0
 	grid .color.colors.backgroundButton -row 1 -column 1
 	grid .color.colors.xGridLabel -row 2 -column 0
@@ -1646,16 +1640,16 @@ proc display::showColorOptions {} {
 	grid .color.colors.yGridButton -row 3 -column 1
 	grid .color.colors.borderLabel -row 4 -column 0
 	grid .color.colors.borderButton -row 4 -column 1
-	
+
 	#Oscilloscope Trace Colors
 	labelframe .color.traces	\
 		-text "Oscilloscope Traces"	\
 		-borderwidth 2		\
 		-padx 10	\
 		-pady 10
-		
+
 	label .color.traces.colorLabel -text "Color"
-	
+
 	#Channel A
 	label .color.traces.aLabel -text "Channel A"
 	button .color.traces.aButton	\
@@ -1671,7 +1665,7 @@ proc display::showColorOptions {} {
 				cursor::toggleChACursor; cursor::toggleChACursor
 			}
 		}
-		
+
 	#Channel B
 	label .color.traces.bLabel -text "Channel B"
 	button .color.traces.bButton	\
@@ -1687,9 +1681,9 @@ proc display::showColorOptions {} {
 				cursor::toggleChBCursor; cursor::toggleChBCursor
 			}
 		}
-	
+
 	grid .color.traces.colorLabel -row 0 -column 1
-	
+
 	grid .color.traces.aLabel -row 1 -column 0 -padx 14
 	grid .color.traces.aButton -row 1 -column 1 -padx 15
 	grid .color.traces.bLabel -row 2 -column 0
@@ -1701,9 +1695,9 @@ proc display::showColorOptions {} {
 		-borderwidth 2		\
 		-padx 10	\
 		-pady 10
-		
+
 	label .color.cursors.colorLabel -text "Color"
-	
+
 	#Trigger Cursor
 	label .color.cursors.trigLabel -text "Trigger Cursor"
 	button .color.cursors.trigButton	\
@@ -1718,7 +1712,7 @@ proc display::showColorOptions {} {
 				cursor::reDrawTriggerCursor
 			}
 		}
-		
+
 	#Trigger Point Cursor
 	label .color.cursors.timeLabel -text "Trigger Point Cursor"
 	button .color.cursors.timeButton	\
@@ -1733,31 +1727,31 @@ proc display::showColorOptions {} {
 				cursor::reDrawXCursor
 			}
 		}
-	
+
 	grid .color.cursors.colorLabel -row 0 -column 1
-	
+
 	grid .color.cursors.trigLabel -row 1 -column 0
 	grid .color.cursors.trigButton -row 1 -column 1
 	grid .color.cursors.timeLabel -row 2 -column 0
 	grid .color.cursors.timeButton -row 2 -column 1
-	
+
 	button .color.resetDefaults	\
 		-text "Reset to Defaults"	\
 		-command display::resetColorDefaults
-	
+
 	button .color.saveExit	\
 		-text "Save and Close"	\
 		-command {
 			display::saveDisplaySettings
 			destroy .color
 		}
-		
+
 	grid .color.colors -row 0 -column 0 -sticky we
 	grid .color.traces -row 1 -column 0 -sticky we
 	grid .color.cursors -row 2 -column 0 -sticky we
 	grid .color.resetDefaults -row 3 -column 0 -pady 5
 	grid .color.saveExit -row 4 -column 0 -pady 5
-	
+
 }
 
 proc display::saveDisplaySettings {} {
@@ -1823,15 +1817,15 @@ proc display::readColorSettings {} {
 }
 
 proc display::resetColorDefaults {} {
-	
+
 	set display::backgroundColor white
 	[display::getDisplayPath].display configure -background white
 	.color.colors.backgroundButton configure -background white
-	
+
 	set display::xGridColor grey
 	display::drawAxes
 	.color.colors.xGridButton configure -background grey
-	
+
 	set display::yGridColor grey
 	display::drawAxes
 	.color.colors.yGridButton configure -background grey
@@ -1839,7 +1833,7 @@ proc display::resetColorDefaults {} {
 	set display::axisColor black
 	display::drawAxes
 	.color.colors.borderButton configure -background black
-	
+
 	set display::channelAColor red
 	.color.traces.aButton configure -background red
 	cursor::reDrawChAGndCursor
@@ -1849,11 +1843,11 @@ proc display::resetColorDefaults {} {
 	.color.traces.bButton configure -background blue
 	cursor::reDrawChBGndCursor
 	cursor::toggleChBCursor; cursor::toggleChBCursor
-	
+
 	set cursor::trigColor green
 	.color.cursors.trigButton configure -background green
 	cursor::reDrawTriggerCursor
-	
+
 	set cursor::timeColor violet
 	.color.cursors.timeButton configure -background violet
 	cursor::reDrawXCursor
