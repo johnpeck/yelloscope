@@ -157,18 +157,19 @@ proc ::usbSerial::processResponse {} {
 
     #Read in all available data from the serial port
     set incomingData [read $::portHandle]
-    #puts "RX: $incomingData"
 
-    #Convert the data bytes into signed integers
+    # ${log}::debug "Received: $incomingData"
+
+    # Convert the data bytes into signed integers
     if { [llength {$incomingData}] > 0 } {
 	binary scan $incomingData c* signed
-	#Convert the bytes into unsigned integers (0-255)
+	# Convert the bytes into unsigned integers (0-255)
 	foreach byte $signed {
 	    lappend ::usbSerial::receivedData [lindex $::usbSerial::cvt [expr {$byte & 255}]]
 	}
     }
 
-    #See if we have data in the buffer to process
+    # See if we have data in the buffer to process
     if {[llength $usbSerial::receivedData] > 0} {
 	set usbSerial::responseType [lindex $::usbSerial::receivedData 0]
 	set usbSerial::responseType [format %c $usbSerial::responseType]
@@ -176,23 +177,24 @@ proc ::usbSerial::processResponse {} {
 	return
     }
 
-    #Get the total length of the message (number of bytes)
+    # Get the total length of the message (number of bytes)
     set responseLength [llength $usbSerial::receivedData]
+    # ${log}::debug "Response type is $usbSerial::responseType, response length is $responseLength"
 
-    #Process the message based on it's message type
+    # Process the message based on it's message type
     switch $usbSerial::responseType {
 	"D" {
-	    #Data from scope capture
+	    # Data from scope capture
 	    if {$responseLength >= 16385} {
-		#Sort out data received from scope
+		# Sort out data received from scope
 		set temp [lrange $usbSerial::receivedData 1 16385]
-		#Deal with left-over data in the receive buffer
+		# Deal with left-over data in the receive buffer
 		if {$responseLength > 16385} {
 		    set usbSerial::receivedData [lrange $usbSerial::receivedData 16385 end]
 		} else {
 		    set usbSerial::receivedData {}
 		}
-		#Process the capture data returned from the scope
+		# Process the capture data returned from the scope
 		scope::processData $temp
 	    } else {
 		#puts "Waiting for more data! $responseLength"
@@ -413,7 +415,6 @@ proc ::usbSerial::processResponse {} {
     if { [llength $usbSerial::receivedData] > 0 } {
 	usbSerial::processResponse
     }
-
 }
 
 # scope::saveOffsets

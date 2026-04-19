@@ -147,7 +147,7 @@ proc scope::processData {data} {
     variable scopeData
     variable triggerState
 
-    #Create arrays for each channel
+    # Create arrays for each channel
     set dataA {}
     set dataB {}
 
@@ -157,29 +157,29 @@ proc scope::processData {data} {
 	set data [lrange $data 1 end]
     }
 
-    #Pointer/counter for traversing data array
+    # Pointer/counter for traversing data array
     set j 0
 
-    #Process samples for each channel
+    # Process samples for each channel
     for {set i 0} {$i < $scope::sampleDepth} {incr i} {
 
-	#Get sample A
+	# Get sample A
 	set datum [lindex $data $j]
 	set sample [expr {256*$datum}]
 	incr j
 	set datum [lindex $data $j]
 	set sample [expr {$sample+$datum}]
-	#Save the sample value
+	# Save the sample value
 	lappend dataA $sample
 	incr j
 
-	#Get sample B
+	# Get sample B
 	set datum [lindex $data $j]
 	set sample [expr {256*$datum}]
 	incr j
 	set datum [lindex $data $j]
 	set sample [expr {$sample+$datum}]
-	#Save the sample value
+	# Save the sample value
 	lappend dataB $sample
 	incr j
 
@@ -202,16 +202,16 @@ proc scope::processData {data} {
     #lappend export::exportData [timebase::getSamplingRate]
 
     if {$::opMode == "CircuitGear"} {
-	#Draw the new data on the screen
+	# Draw the new data on the screen
 	display::plotData
 
-	#Update the trigger display
+	# Update the trigger display
 	if {$trigger::triggerMode == "External"} {
 	    [display::getDisplayPath].statusBar configure -text "External Trigger"
 	} else {
-	    #The Mini sends its trigger state with the scope data
-	    #The MK2 sends the trigger state automatically when a capture is started and
-	    #the status test is udpated in the usbSerial::processResponse procedure
+	    # The Mini sends its trigger state with the scope data
+	    # The MK2 sends the trigger state automatically when a capture is started and
+	    # the status test is udpated in the usbSerial::processResponse procedure
 	    if {($::deviceType=="mini")||($::deviceType=="sig")} {
 		if {$triggerState == 2} {
 		    [display::getDisplayPath].statusBar configure -text "Triggered"
