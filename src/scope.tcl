@@ -146,6 +146,7 @@ proc scope::buildScope {} {
 proc scope::processData {data} {
     variable scopeData
     variable triggerState
+    global log
 
     # Create arrays for each channel
     set dataA {}
@@ -184,6 +185,8 @@ proc scope::processData {data} {
 	incr j
 
     }
+
+    # ${log}::debug "dataA is [llength $dataA] samples long, dataB is [llength $dataB] samples long"
 
     #Clear the existing scope data array and store the new values
     set scopeData [list $dataA $dataB]

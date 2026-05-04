@@ -2,6 +2,8 @@
 
 My fork of Syscomp Design's (defunct) software for their USB Oscilloscopes.
 
+<img src="img/cgr-201_manual.png" width="400">
+
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 **Table of Contents**
 

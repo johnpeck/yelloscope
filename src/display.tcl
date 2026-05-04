@@ -520,24 +520,24 @@ proc display::plotData {} {
 	}
     }
 
-    #Create lists for screen points
+    # Create lists for screen points
     set plotDataA {}
     set plotDataB {}
 
-    #Some pre-calculations to speed things up
+    # Some pre-calculations to speed things up
     set displayHeight [expr {$display::yAxisEnd-$display::yAxisStart}]
 
-    #Determine the spacing between samples
+    # Determine the spacing between samples
     set displayTime [expr {10.0*$timebase::timebaseSetting}]
     set pixelTime [expr {$displayTime/($display::xAxisEnd-$display::xAxisStart)}]
 
-    #Determine the first sample that should appear on the screen
+    # Determine the first sample that should appear on the screen
     set firstSample 0
-    #Determine the last sample that should appear on the screen
+    # Determine the last sample that should appear on the screen
     set lastSample [llength $dataA]
     set rightBorderSample [llength $dataA]
 
-    #If the timebase changes during plotting exit gracefully
+    # If the timebase changes during plotting exit gracefully
     if {($firstSample<0)||($lastSample>[llength $dataA])} {return}
 
     # Calculate the index of the sample that should appear

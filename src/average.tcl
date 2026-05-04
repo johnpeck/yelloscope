@@ -40,7 +40,7 @@ namespace eval average {
 }
 
 proc average::updateAverage {plotDataA plotDataB} {
-
+    global log
     if {$average::levelsOfAverage == "Off" || $average::averageStale} {
 	set plotA $plotDataA
 	set plotB $plotDataB
@@ -62,7 +62,7 @@ proc average::updateAverage {plotDataA plotDataB} {
 
 	    set averageLength [llength $plotDataA]
 	    set numPoints [llength $average::chA]
-	    # puts "averageLength $averageLength numPoints $numPoints"
+	    ${log}::debug "Trace length (averageLength) is $averageLength, traces to average (numPoints) is $numPoints"
 
 	    #for each data point, add the new value and subtract the old
 	    if {[llength $average::averageDataA] == 0} {

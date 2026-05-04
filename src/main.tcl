@@ -999,5 +999,5 @@ usbSerial::getStoredPort
 usbSerial::openSerialPort
 
 ${log}::info "This is $program_name version $softwareVersion"
-${log}::info "Sending logger output to [dict get $state_dict debug_log_file]"
+${log}::info "Sending logger output above level $loglevel to [dict get $state_dict debug_log_file]"
 
