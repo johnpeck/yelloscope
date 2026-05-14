@@ -8,11 +8,39 @@ My fork of Syscomp Design's (defunct) software for their USB Oscilloscopes.
 **Table of Contents**
 
 - [Yelloscope](#yelloscope)
+  - [Installing](#installing)
+    - [From source](#from-source)
+      - [Linux (Ubuntu)](#linux-ubuntu)
   - [Documentation](#documentation)
   - [Firmware hex files](#firmware-hex-files)
   - [Sample waveforms for the arbitrary waveform generator](#sample-waveforms-for-the-arbitrary-waveform-generator)
 
 <!-- markdown-toc end -->
+
+## Installing ##
+
+### From source ###
+
+#### Linux (Ubuntu) ####
+
+1. Clone the repository
+
+```
+git clone https://github.com/johnpeck/yelloscope.git
+```
+
+2. Install prerequisites
+
+```
+sudo apt install tcllib libtk-img bwidget tk-table
+```
+
+3. Start the software
+
+```
+cd yelloscope/src
+tclsh main.tcl
+```
 
 ## Documentation ##
 
