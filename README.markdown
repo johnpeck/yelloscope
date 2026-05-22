@@ -11,6 +11,7 @@ My fork of Syscomp Design's (defunct) software for their USB Oscilloscopes.
   - [Installing](#installing)
     - [From source](#from-source)
       - [Linux (Ubuntu)](#linux-ubuntu)
+      - [Windows 11](#windows-11)
   - [Documentation](#documentation)
   - [Firmware hex files](#firmware-hex-files)
   - [Sample waveforms for the arbitrary waveform generator](#sample-waveforms-for-the-arbitrary-waveform-generator)
@@ -37,6 +38,21 @@ sudo apt install tcllib libtk-img bwidget tk-table
 
 3. Start the software
 
+```
+cd yelloscope/src
+tclsh main.tcl
+```
+
+#### Windows 11 ####
+
+1. Install [Git for Windows](https://github.com/git-for-windows)
+2. Install [Magicsplat Tcl/Tk for Windows](https://sourceforge.net/projects/magicsplat/files/magicsplat-tcl/). Choose an 8.6 release — this isn't tested on Tcl 9 yet.
+3. Right click on a folder, *open in terminal* to start a Powershell terminal.
+4. Clone the repository
+```
+git clone https://github.com/johnpeck/yelloscope.git
+```
+5. Start the software
 ```
 cd yelloscope/src
 tclsh main.tcl
